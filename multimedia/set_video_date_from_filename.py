@@ -4,6 +4,10 @@
 Set video creation dates from filenames.
 Extracts date/time from specially formatted filenames and writes it as metadata.
 Handles timezone conversion from Brazil time to UTC with automatic DST support.
+
+Supported filename formats:
+    - With prefix: [tag] 2018-04-07 17.50.41-1.mp4
+    - Without prefix: 2016-12-19 19.10.47-1.m4v
 """
 
 import subprocess
@@ -21,11 +25,14 @@ BRAZIL_TZ = ZoneInfo("America/Sao_Paulo")
 
 def extract_date_from_filename(filename):
     """
-    Extract date from filename format: [ff30-medium] 2018-04-07 17.50.41-1.mp4
+    Extract date from filename formats:
+        - With prefix: [tag] 2018-04-07 17.50.41-1.mp4
+        - Without prefix: 2016-12-19 19.10.47-1.m4v
+    
     Returns datetime object or None if no match
     """
-    # Pattern to match: [anything] YYYY-MM-DD HH.MM.SS (optional suffix)
-    pattern = r'\[.*?\]\s+(\d{4})-(\d{2})-(\d{2})\s+(\d{2})\.(\d{2})\.(\d{2})'
+    # Pattern to match: (optional [anything]) YYYY-MM-DD HH.MM.SS (optional suffix)
+    pattern = r'(?:\[.*?\]\s+)?(\d{4})-(\d{2})-(\d{2})\s+(\d{2})\.(\d{2})\.(\d{2})'
     
     match = re.search(pattern, filename)
     
@@ -107,8 +114,9 @@ def main():
         print("Example:")
         print('  python set_video_date_from_filename.py /path/to/videos/')
         print()
-        print("Expected filename format: [prefix] YYYY-MM-DD HH.MM.SS (in Brazil time)")
-        print('  Example: [ff30-medium] 2018-04-07 17.50.41-1.mp4')
+        print("Expected filename formats (date in Brazil time):")
+        print('  - With prefix:    [tag] 2018-04-07 17.50.41-1.mp4')
+        print('  - Without prefix: 2016-12-19 19.10.47-1.m4v')
         print()
         print('Note: DST (Daylight Saving Time) is automatically handled based on the date.')
         sys.exit(1)
@@ -157,7 +165,7 @@ def main():
         
         if creation_date is None:
             print(f"   ⚠️  Skipped: Could not extract date from filename")
-            print(f"      Expected format: [prefix] YYYY-MM-DD HH.MM.SS")
+            print(f"      Expected format: YYYY-MM-DD HH.MM.SS (optional [prefix])")
             skipped_count += 1
             print()
             continue
