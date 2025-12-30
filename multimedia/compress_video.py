@@ -16,9 +16,17 @@ DEFAULT_CRF = 23
 DEFAULT_PRESET = "medium"
 
 # Supported video extensions
-VIDEO_EXTENSIONS = {'.mp4', '.mov', '.mkv', '.avi', '.m4v', '.MP4', '.MOV', '.MKV', '.AVI', '.M4V'}
+VIDEO_EXTENSIONS = {'.mp4', '.mov', '.mkv', '.avi', '.m4v', '.vob', 
+                    '.MP4', '.MOV', '.MKV', '.AVI', '.M4V', '.VOB'}
 
-def main():
+
+def setup_argument_parser():
+    """
+    Set up and return the argument parser.
+    
+    Returns:
+        argparse.ArgumentParser: Configured argument parser
+    """
     parser = argparse.ArgumentParser(
         description='Compress videos in a directory using ffmpeg'
     )
@@ -40,6 +48,11 @@ def main():
         help='Directory containing the videos'
     )
     
+    return parser
+
+
+def main():
+    parser = setup_argument_parser()
     args = parser.parse_args()
     
     # Validate directory
@@ -78,7 +91,9 @@ def main():
     error_count = 0
     
     for video_file in video_files:
-        output_file = output_dir / f"[ff{args.crf}-{args.preset}] {video_file.name}"
+        # Always output as .mp4, replace original extension
+        output_name = f"[ff{args.crf}-{args.preset}] {video_file.stem}.mp4"
+        output_file = output_dir / output_name
         
         print(f"→ Converting: {video_file.name} → {output_file.name}")
         
@@ -98,12 +113,14 @@ def main():
                 str(output_file)
             ]
             
-            subprocess.run(cmd, check=True, capture_output=True)
+            subprocess.run(cmd, check=True, capture_output=True, text=True)
             print(f"  ✅ Success")
             success_count += 1
             
         except subprocess.CalledProcessError as e:
-            print(f"  ❌ Error: {e}")
+            print(f"  ❌ Error: ffmpeg failed with exit code {e.returncode}")
+            if e.stderr:
+                print(f"     {e.stderr.strip()}")
             error_count += 1
         except Exception as e:
             print(f"  ❌ Unexpected error: {e}")
