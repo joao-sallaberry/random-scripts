@@ -16,8 +16,8 @@ DEFAULT_CRF = 23
 DEFAULT_PRESET = "medium"
 
 # Supported video extensions
-VIDEO_EXTENSIONS = {'.mp4', '.mov', '.mkv', '.avi', '.m4v', '.vob', 
-                    '.MP4', '.MOV', '.MKV', '.AVI', '.M4V', '.VOB'}
+VIDEO_EXTENSIONS = {'.mp4', '.mov', '.mkv', '.avi', '.m4v', '.vob', '.mod',
+                    '.MP4', '.MOV', '.MKV', '.AVI', '.M4V', '.VOB', '.MOD'}
 
 
 def setup_argument_parser():
@@ -51,6 +51,36 @@ def setup_argument_parser():
     return parser
 
 
+def build_ffmpeg_command(input_file, output_file, crf, preset):
+    """
+    Build the ffmpeg command for video conversion.
+    
+    Args:
+        input_file: Path to input video file
+        output_file: Path to output video file
+        crf: CRF quality value
+        preset: ffmpeg preset
+        
+    Returns:
+        list: Command as list of strings for subprocess
+    """
+    return [
+        "ffmpeg",
+        "-i", str(input_file),
+        "-map", "0",
+        "-map_metadata", "0",
+        "-map_chapters", "0",
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        "-preset", preset,
+        "-crf", str(crf),
+        "-vf", "bwdif=mode=1:parity=auto:deint=all", # deinterlace if interlaced
+        "-movflags", "+faststart",
+        "-y", # overwrite if exists
+        str(output_file)
+    ]
+
+
 def main():
     parser = setup_argument_parser()
     args = parser.parse_args()
@@ -73,6 +103,19 @@ def main():
     print(f"CRF: {args.crf}")
     print(f"Preset: {args.preset}")
     print(f"Output to: {output_dir}")
+    print()
+    
+    # Build sample command to show options
+    sample_cmd = build_ffmpeg_command("<input>", "<output>", args.crf, args.preset)
+    
+    print("FFmpeg command options:")
+    # Display options in a readable format
+    cmd_str = " ".join(sample_cmd)
+    # Break into lines for readability
+    parts = cmd_str.split(" -")
+    print(f"  {parts[0]}")
+    for part in parts[1:]:
+        print(f"  -{part}")
     print()
     
     # Find all video files
@@ -98,20 +141,7 @@ def main():
         print(f"→ Converting: {video_file.name} → {output_file.name}")
         
         try:
-            cmd = [
-                "ffmpeg",
-                "-i", str(video_file),
-                "-map_metadata", "0",
-                "-c:v", "libx264",
-                "-preset", args.preset,
-                "-crf", str(args.crf),
-                "-vf", "scale='if(gt(iw,ih),-2,1080)':'if(gt(ih,iw),-2,1080)',fps=30",
-                "-c:a", "aac",
-                "-b:a", "160k",
-                "-movflags", "+faststart",
-                "-y",  # Overwrite if exists
-                str(output_file)
-            ]
+            cmd = build_ffmpeg_command(video_file, output_file, args.crf, args.preset)
             
             subprocess.run(cmd, check=True, capture_output=True, text=True)
             print(f"  ✅ Success")
