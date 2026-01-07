@@ -11,8 +11,8 @@ Usage Examples:
         python change_shot_date.py /path/to/media --days -5 --hours -2
     
     Exact date mode (set all files to specific date):
-        python change_shot_date.py /path/to/media --set-date 2024-03-15T14:30:00
-        python change_shot_date.py /path/to/media --set-date "2024-03-15 14:30:00"
+        python change_shot_date.py /path/to/media --set-date 2024-03-15T14:30:00 --timezone America/Sao_Paulo
+        python change_shot_date.py /path/to/media --set-date "2024-03-15 14:30:00" --timezone UTC
 """
 
 import subprocess
@@ -22,6 +22,7 @@ import re
 from pathlib import Path
 import shutil
 import argparse
+from zoneinfo import ZoneInfo
 
 # Supported extensions
 VIDEO_EXTENSIONS = {'.mp4', '.mov', '.avi', '.mkv', '.m4v', '.MP4', '.MOV', '.AVI', '.MKV', '.M4V'}
@@ -39,7 +40,7 @@ def setup_argument_parser():
         description='Adjust creation dates of videos and photos by offset or set to exact date',
         epilog='Examples:\n'
                '  Offset mode:  %(prog)s /path/to/media --days 2 --hours 3\n'
-               '  Exact mode:   %(prog)s /path/to/media --set-date 2024-03-15T14:30:00\n',
+               '  Exact mode:   %(prog)s /path/to/media --set-date 2024-03-15T14:30:00 --timezone America/Sao_Paulo\n',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
@@ -55,6 +56,14 @@ def setup_argument_parser():
         type=str,
         metavar='ISO_DATE',
         help='Set all files to exact date (ISO format: YYYY-MM-DDTHH:MM:SS or YYYY-MM-DD HH:MM:SS)'
+    )
+    
+    # Timezone parameter (required with --set-date)
+    parser.add_argument(
+        '--timezone',
+        type=str,
+        metavar='TZ',
+        help='Timezone for the exact date (e.g., America/Sao_Paulo, UTC, Europe/Paris). Required with --set-date.'
     )
     
     # Offset parameters
@@ -116,7 +125,7 @@ def validate_arguments(args):
         args: Parsed arguments from argparse
         
     Returns:
-        tuple: (use_exact_date: bool, exact_date: datetime or None, input_dir: Path)
+        tuple: (use_exact_date: bool, exact_date: datetime or None, input_dir: Path, timezone: ZoneInfo or None)
         
     Raises:
         SystemExit: If validation fails
@@ -135,11 +144,30 @@ def validate_arguments(args):
         print("Error: Must specify either --set-date or at least one offset (--days, --hours, --minutes)")
         sys.exit(1)
     
+    # Validate timezone is provided when using exact date mode
+    if use_exact_date and not args.timezone:
+        print("Error: --timezone is required when using --set-date")
+        print("Examples: America/Sao_Paulo, UTC, Europe/Paris, America/New_York")
+        sys.exit(1)
+    
+    # Parse timezone
+    timezone = None
+    if use_exact_date:
+        try:
+            timezone = ZoneInfo(args.timezone)
+        except Exception as e:
+            print(f"Error: Invalid timezone '{args.timezone}'")
+            print("Use IANA timezone names (e.g., America/Sao_Paulo, UTC, Europe/Paris)")
+            print(f"Details: {e}")
+            sys.exit(1)
+    
     # Parse exact date if provided
     exact_date = None
     if use_exact_date:
         try:
-            exact_date = parse_iso_date(args.set_date)
+            naive_date = parse_iso_date(args.set_date)
+            # Localize the naive datetime to the specified timezone
+            exact_date = naive_date.replace(tzinfo=timezone)
         except ValueError as e:
             print(f"Error: {e}")
             sys.exit(1)
@@ -204,11 +232,16 @@ def process_video(input_video, output_video, use_exact_date, exact_date, args):
         # 3️⃣ Apply the time offset
         new_time = creation_time + timedelta(days=args.days, hours=args.hours, minutes=args.minutes)
     else:
-        # Use exact date
-        new_time = exact_date
+        # Use exact date (already timezone-aware from validation)
+        # Convert to UTC for storage in video metadata
+        new_time = exact_date.astimezone(ZoneInfo("UTC"))
         original_time_str = "(original date)"
     
-    new_time_str = new_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    # Format for ffmpeg (always in UTC)
+    if use_exact_date:
+        new_time_str = new_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    else:
+        new_time_str = new_time.strftime("%Y-%m-%dT%H:%M:%SZ")
     
     # 4️⃣ Write new metadata (without re-encoding)
     cmd_write = [
@@ -325,7 +358,8 @@ def main():
     # Display mode information
     if use_exact_date:
         print(f"📅 Mode: Set to exact date")
-        print(f"⏰ Target date: {exact_date.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"⏰ Target date: {exact_date.strftime('%Y-%m-%d %H:%M:%S %Z')} ({exact_date.tzinfo})")
+        print(f"🌍 UTC equivalent: {exact_date.astimezone(ZoneInfo('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')}")
     else:
         offset_parts = []
         if args.days != 0:
