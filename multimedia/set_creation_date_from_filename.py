@@ -131,19 +131,21 @@ def set_media_creation_date(file_path, output_dir, creation_date, is_video=True)
     # Localize the naive datetime to Brazil timezone (handles DST automatically)
     creation_date_br = creation_date.replace(tzinfo=BRAZIL_TZ)
     
-    # Convert to UTC
-    creation_date_utc = creation_date_br.astimezone(ZoneInfo("UTC"))
-    
-    # Get the offset for display purposes
-    offset = creation_date_br.strftime('%z')
-    offset_hours = f"UTC{offset[:3]}:{offset[3:]}"
-    
-    # Format date for exiftool (YYYY:MM:DD HH:MM:SS format)
-    date_str = creation_date_utc.strftime("%Y:%m:%d %H:%M:%S")
-    
-    # Build exiftool command based on file type
+    # For videos: convert to UTC (video metadata typically stores UTC)
+    # For photos: keep in Brazil time (EXIF doesn't store timezone, just local time)
     if is_video:
-        # Video: Set CreateDate, ModifyDate, TrackCreateDate, MediaCreateDate
+        # Convert to UTC for video
+        creation_date_utc = creation_date_br.astimezone(ZoneInfo("UTC"))
+        date_str = creation_date_utc.strftime("%Y:%m:%d %H:%M:%S")
+        
+        # Get the offset for display purposes
+        offset = creation_date_br.strftime('%z')
+        offset_hours = f"UTC{offset[:3]}:{offset[3:]}"
+        
+        print(f"   📅 New (BRT): {creation_date.strftime('%Y-%m-%d %H:%M:%S')} ({offset_hours})")
+        print(f"   🌍 New (UTC): {creation_date_utc.strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        # Build exiftool command for video
         cmd = [
             "exiftool",
             "-overwrite_original",
@@ -154,7 +156,12 @@ def set_media_creation_date(file_path, output_dir, creation_date, is_video=True)
             str(output_path)
         ]
     else:
-        # Photo: Set DateTimeOriginal, CreateDate, ModifyDate
+        # For photos, store the Brazil local time directly (no UTC conversion)
+        date_str = creation_date.strftime("%Y:%m:%d %H:%M:%S")
+        
+        print(f"   📅 New (BRT): {creation_date.strftime('%Y-%m-%d %H:%M:%S')} (local time)")
+        
+        # Build exiftool command for photo
         cmd = [
             "exiftool",
             "-overwrite_original",
@@ -163,9 +170,6 @@ def set_media_creation_date(file_path, output_dir, creation_date, is_video=True)
             f"-ModifyDate={date_str}",
             str(output_path)
         ]
-    
-    print(f"   📅 New (BRT): {creation_date.strftime('%Y-%m-%d %H:%M:%S')} ({offset_hours})")
-    print(f"   🌍 New (UTC): {creation_date_utc.strftime('%Y-%m-%d %H:%M:%S')}")
     
     try:
         subprocess.run(cmd, check=True, capture_output=True, text=True)
