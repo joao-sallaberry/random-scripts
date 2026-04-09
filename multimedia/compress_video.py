@@ -74,7 +74,7 @@ def build_ffmpeg_command(input_file, output_file, crf, preset):
         "-pix_fmt", "yuv420p",
         "-preset", preset,
         "-crf", str(crf),
-        "-vf", "bwdif=mode=1:parity=auto:deint=all", # deinterlace if interlaced
+        "-vf", "bwdif=mode=1:parity=auto:deint=interlaced", # deinterlace if interlaced
         "-movflags", "+faststart",
         "-y", # overwrite if exists
         str(output_file)
