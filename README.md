@@ -1,7 +1,21 @@
 # random-scripts
 
+## Install
+
+Create and activate virtual environment:
+```sh
+python -m venv .venv
+source .venv/bin/activate
+```
+
+Install dependencies:
+```sh
+pip install -r requirements.txt
+```
+
 ## Usage
-Before running scripts, run:
+
+Activate the virtual environment:
 
 ```sh
 source .venv/bin/activate
