@@ -2,7 +2,8 @@
 
 """
 Adjust creation dates of videos and photos in a directory.
-Supports two modes: offset mode (adjust by time delta) or exact date mode (set specific date).
+Supports three modes: offset mode (adjust by time delta), exact date mode (set specific date),
+or from-filename mode (parse date from the filename).
 Uses ffmpeg for videos and exiftool for photos.
 
 Usage Examples:
@@ -13,6 +14,9 @@ Usage Examples:
     Exact date mode (set all files to specific date):
         python change_shot_date.py /path/to/media --set-date 2024-03-15T14:30:00 --timezone America/Sao_Paulo
         python change_shot_date.py /path/to/media --set-date "2024-03-15 14:30:00" --timezone UTC
+    
+    From-filename mode (parse date from filename, e.g. "France 2014-03-07 23.09.18.mp4"):
+        python change_shot_date.py /path/to/media --from-filename --timezone Europe/Paris
 """
 
 import subprocess
@@ -25,8 +29,8 @@ import argparse
 from zoneinfo import ZoneInfo
 
 # Supported extensions
-VIDEO_EXTENSIONS = {'.mp4', '.mov', '.avi', '.mkv', '.m4v', '.MP4', '.MOV', '.AVI', '.MKV', '.M4V'}
-PHOTO_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.JPG', '.JPEG', '.PNG'}
+VIDEO_EXTENSIONS = {'.mp4', '.mov', '.avi', '.mkv', '.m4v'}
+PHOTO_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
 
 
 def setup_argument_parser():
@@ -39,8 +43,9 @@ def setup_argument_parser():
     parser = argparse.ArgumentParser(
         description='Adjust creation dates of videos and photos by offset or set to exact date',
         epilog='Examples:\n'
-               '  Offset mode:  %(prog)s /path/to/media --days 2 --hours 3\n'
-               '  Exact mode:   %(prog)s /path/to/media --set-date 2024-03-15T14:30:00 --timezone America/Sao_Paulo\n',
+               '  Offset mode:        %(prog)s /path/to/media --days 2 --hours 3\n'
+               '  Exact mode:         %(prog)s /path/to/media --set-date 2024-03-15T14:30:00 --timezone America/Sao_Paulo\n'
+               '  From-filename mode: %(prog)s /path/to/media --from-filename --timezone America/Sao_Paulo\n',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
@@ -57,13 +62,18 @@ def setup_argument_parser():
         metavar='ISO_DATE',
         help='Set all files to exact date (ISO format: YYYY-MM-DDTHH:MM:SS or YYYY-MM-DD HH:MM:SS)'
     )
+    mode_group.add_argument(
+        '--from-filename',
+        action='store_true',
+        help='Parse date from each filename (e.g. "France 2014-03-07 23.09.18.mp4"). Requires --timezone.'
+    )
     
-    # Timezone parameter (required with --set-date)
+    # Timezone parameter (required with --set-date and --from-filename)
     parser.add_argument(
         '--timezone',
         type=str,
         metavar='TZ',
-        help='Timezone for the exact date (e.g., America/Sao_Paulo, UTC, Europe/Paris). Required with --set-date.'
+        help='Timezone for the date (e.g., America/Sao_Paulo, UTC, Europe/Paris). Required with --set-date and --from-filename.'
     )
     
     # Offset parameters
@@ -87,6 +97,33 @@ def setup_argument_parser():
     )
     
     return parser
+
+
+def parse_date_from_filename(filename):
+    """
+    Parse a date and time from a filename.
+    Looks for a pattern like YYYY-MM-DD HH.MM.SS within the filename stem.
+    
+    Args:
+        filename: str or Path — the file name to parse
+        
+    Returns:
+        datetime: Naive datetime object parsed from the filename
+        
+    Raises:
+        ValueError: If no recognizable date pattern is found
+    """
+    stem = Path(filename).stem
+    pattern = r'(\d{4}-\d{2}-\d{2})[ _T](\d{2}[:.\-]\d{2}[:.\-]\d{2})'
+    match = re.search(pattern, stem)
+    if not match:
+        raise ValueError(
+            f"No date pattern found in filename '{filename}'. "
+            "Expected format like: 'France 2014-03-07 23.09.18.mp4'"
+        )
+    date_part = match.group(1)
+    time_part = re.sub(r'[.\-]', ':', match.group(2))
+    return datetime.strptime(f"{date_part} {time_part}", "%Y-%m-%d %H:%M:%S")
 
 
 def parse_iso_date(date_string):
@@ -125,34 +162,33 @@ def validate_arguments(args):
         args: Parsed arguments from argparse
         
     Returns:
-        tuple: (use_exact_date: bool, exact_date: datetime or None, input_dir: Path, timezone: ZoneInfo or None)
+        tuple: (mode: str, exact_date: datetime or None, input_dir: Path, timezone: ZoneInfo or None)
+               mode is one of: 'exact', 'offset', 'from_filename'
         
     Raises:
         SystemExit: If validation fails
     """
-    # Check if using exact date or offset mode
     use_exact_date = args.set_date is not None
+    use_from_filename = args.from_filename
     use_offset = args.days != 0 or args.hours != 0 or args.minutes != 0
     
-    # Validate that modes are mutually exclusive
-    if use_exact_date and use_offset:
-        print("Error: Cannot use both --set-date and offset parameters (--days, --hours, --minutes)")
+    # Validate that offset params are not mixed with from-filename
+    if use_from_filename and use_offset:
+        print("Error: Cannot use --from-filename together with offset parameters (--days, --hours, --minutes)")
         sys.exit(1)
     
-    # Validate that at least one mode is specified
-    if not use_exact_date and not use_offset:
-        print("Error: Must specify either --set-date or at least one offset (--days, --hours, --minutes)")
-        sys.exit(1)
-    
-    # Validate timezone is provided when using exact date mode
-    if use_exact_date and not args.timezone:
-        print("Error: --timezone is required when using --set-date")
+    # Validate timezone is provided when required
+    if (use_exact_date or use_from_filename) and not args.timezone:
+        if use_exact_date:
+            print("Error: --timezone is required when using --set-date")
+        else:
+            print("Error: --timezone is required when using --from-filename")
         print("Examples: America/Sao_Paulo, UTC, Europe/Paris, America/New_York")
         sys.exit(1)
     
     # Parse timezone
     timezone = None
-    if use_exact_date:
+    if use_exact_date or use_from_filename:
         try:
             timezone = ZoneInfo(args.timezone)
         except Exception as e:
@@ -161,12 +197,11 @@ def validate_arguments(args):
             print(f"Details: {e}")
             sys.exit(1)
     
-    # Parse exact date if provided
+    # Parse exact date if --set-date was provided
     exact_date = None
     if use_exact_date:
         try:
             naive_date = parse_iso_date(args.set_date)
-            # Localize the naive datetime to the specified timezone
             exact_date = naive_date.replace(tzinfo=timezone)
         except ValueError as e:
             print(f"Error: {e}")
@@ -183,25 +218,37 @@ def validate_arguments(args):
         print(f"Error: The provided path is not a directory: {input_dir}")
         sys.exit(1)
     
-    return use_exact_date, exact_date, input_dir
+    if use_exact_date:
+        mode = 'exact'
+    elif use_from_filename:
+        mode = 'from_filename'
+    else:
+        mode = 'offset'
+    
+    return mode, exact_date, input_dir, timezone
 
 
-def process_video(input_video, output_video, use_exact_date, exact_date, args):
+def process_video(input_video, output_video, mode, exact_date, args, timezone=None):
     """
     Process a video file using ffmpeg.
     
     Args:
         input_video: Path to input video file
         output_video: Path to output video file
-        use_exact_date: Whether to use exact date mode
-        exact_date: The exact date to set (if in exact date mode)
+        mode: One of 'exact', 'offset', 'from_filename'
+        exact_date: The exact date to set (if in exact/from_filename mode)
         args: Parsed command-line arguments
+        timezone: ZoneInfo object (used for from_filename mode)
         
     Returns:
         tuple: (original_time_str, new_time_str)
     """
-    # 1️⃣ Read creation_time via ffmpeg (only needed for offset mode)
     original_time_str = None
+    use_exact_date = mode in ('exact', 'from_filename')
+    
+    if mode == 'from_filename':
+        naive_date = parse_date_from_filename(input_video.name)
+        exact_date = naive_date.replace(tzinfo=timezone)
     
     if not use_exact_date:
         cmd_probe = [
@@ -259,22 +306,27 @@ def process_video(input_video, output_video, use_exact_date, exact_date, args):
     return original_time_str, new_time_str
 
 
-def process_photo(input_photo, output_photo, use_exact_date, exact_date, args):
+def process_photo(input_photo, output_photo, mode, exact_date, args, timezone=None):
     """
     Process a photo file using exiftool.
     
     Args:
         input_photo: Path to input photo file
         output_photo: Path to output photo file
-        use_exact_date: Whether to use exact date mode
-        exact_date: The exact date to set (if in exact date mode)
+        mode: One of 'exact', 'offset', 'from_filename'
+        exact_date: The exact date to set (if in exact/from_filename mode)
         args: Parsed command-line arguments
+        timezone: ZoneInfo object (used for from_filename mode)
         
     Returns:
         tuple: (original_date_str, new_time_str)
     """
-    # 1️⃣ Read original date via exiftool (only needed for offset mode)
     original_date_str = None
+    use_exact_date = mode in ('exact', 'from_filename')
+    
+    if mode == 'from_filename':
+        naive_date = parse_date_from_filename(input_photo.name)
+        exact_date = naive_date.replace(tzinfo=timezone)
     
     if not use_exact_date:
         cmd_probe = [
@@ -331,21 +383,21 @@ def main():
     # Parse and validate arguments
     parser = setup_argument_parser()
     args = parser.parse_args()
-    use_exact_date, exact_date, input_dir = validate_arguments(args)
+    mode, exact_date, input_dir, timezone = validate_arguments(args)
     
     # Check if exiftool is available
     exiftool_available = shutil.which("exiftool") is not None
     if not exiftool_available:
         print("⚠️  exiftool not found. Photos will not be processed.")
-        print("   Install with: brew install exiftool")
+        print("   Install with: \"sudo apt install exiftool\" or \"brew install exiftool\"")
     
     # Find all files in the directory
     media_files = []
     for f in input_dir.iterdir():
         if f.is_file():
-            if f.suffix in VIDEO_EXTENSIONS:
+            if f.suffix.lower() in VIDEO_EXTENSIONS:
                 media_files.append(('video', f))
-            elif f.suffix in PHOTO_EXTENSIONS and exiftool_available:
+            elif f.suffix.lower() in PHOTO_EXTENSIONS and exiftool_available:
                 media_files.append(('photo', f))
     
     if not media_files:
@@ -356,10 +408,13 @@ def main():
     photo_count = sum(1 for t, _ in media_files if t == 'photo')
     
     # Display mode information
-    if use_exact_date:
+    if mode == 'exact':
         print(f"📅 Mode: Set to exact date")
         print(f"⏰ Target date: {exact_date.strftime('%Y-%m-%d %H:%M:%S %Z')} ({exact_date.tzinfo})")
         print(f"🌍 UTC equivalent: {exact_date.astimezone(ZoneInfo('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')}")
+    elif mode == 'from_filename':
+        print(f"📅 Mode: Parse date from filename")
+        print(f"🌍 Timezone: {args.timezone}")
     else:
         offset_parts = []
         if args.days != 0:
@@ -392,9 +447,9 @@ def main():
             output_file = output_dir / input_file.name
             
             if media_type == "video":
-                original, new = process_video(input_file, output_file, use_exact_date, exact_date, args)
+                original, new = process_video(input_file, output_file, mode, exact_date, args, timezone)
             else:  # photo
-                original, new = process_photo(input_file, output_file, use_exact_date, exact_date, args)
+                original, new = process_photo(input_file, output_file, mode, exact_date, args, timezone)
             
             print(f"  ✅ Success")
             print(f"     📅 Original : {original}")
@@ -409,7 +464,8 @@ def main():
     
     print("="*50)
     print(f"✅ Successfully processed: {success_count}")
-    print(f"❌ Errors: {error_count}")
+    if error_count > 0:
+        print(f"❌ Errors: {error_count}")
     print(f"📁 Files saved in: {output_dir}")
 
 
