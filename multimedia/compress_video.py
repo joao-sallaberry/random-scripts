@@ -29,13 +29,11 @@ import sys
 import argparse
 import time
 from pathlib import Path
+from util import VIDEO_EXTENSIONS
 
 # Default values
 DEFAULT_CRF = 23
 DEFAULT_PRESET = "medium"
-
-# Supported video extensions
-VIDEO_EXTENSIONS = {'.mp4', '.mov', '.mkv', '.avi', '.m4v', '.vob', '.mod'}
 
 
 def setup_argument_parser():

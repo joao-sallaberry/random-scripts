@@ -27,10 +27,7 @@ from pathlib import Path
 import shutil
 import argparse
 from zoneinfo import ZoneInfo
-
-# Supported extensions
-VIDEO_EXTENSIONS = {'.mp4', '.mov', '.avi', '.mkv', '.m4v'}
-PHOTO_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
+from util import VIDEO_EXTENSIONS, PHOTO_EXTENSIONS
 
 
 def setup_argument_parser():
