@@ -5,16 +5,17 @@
 Compress videos in a directory using ffmpeg with H.265 (10-bit) encoding.
 Keeps original resolution and frame rate, deinterlaces when needed, and applies
 customizable CRF quality. Preserves metadata (dates, GPS, camera make/model) and
-file modification time while reducing file size.
+file modification time while reducing file size. The equivalent ffmpeg command is
+recorded in the output's "compress_settings" metadata tag.
 
 usage: compress_video.py [-h] [--crf CRF] [--preset PRESET] [--start START] [--end END]
-                         [--overwrite]
-                         directory
+                         [--overwrite] [--show-settings]
+                         path
 
 Compress videos in a directory using ffmpeg
 
 positional arguments:
-  directory        Directory containing the videos
+  path             Directory containing the videos (or a single video with --show-settings)
 
 options:
   -h, --help       show this help message and exit
@@ -23,14 +24,18 @@ options:
   --start START    Start time to cut from (e.g. 01:30 or 90)
   --end END        End time to cut to (e.g. 02:45 or 165)
   --overwrite      Re-encode videos whose output already exists
+  --show-settings  Only print the compress_settings tag of already compressed videos
 
-example: compress_video.py --crf 20 --preset slow /path/to/videos
+examples:
+  compress_video.py --crf 20 --preset slow /path/to/videos
+  compress_video.py --show-settings /path/to/videos/ff20-slow
 """
 
 import subprocess
 import sys
 import argparse
 import os
+import shlex
 import shutil
 import time
 from pathlib import Path
@@ -40,6 +45,7 @@ from util import VIDEO_EXTENSIONS
 DEFAULT_CRF = 23
 DEFAULT_PRESET = "slow"
 AUDIO_BITRATE_PER_CHANNEL_K = 80  # 160k for stereo
+COMMAND_METADATA_KEY = "compress_settings"
 
 # Metadata copied from the original with exiftool. Track header tags (e.g. Rotation)
 # are deliberately left out: ffmpeg already applies the rotation when re-encoding,
@@ -95,9 +101,14 @@ def setup_argument_parser():
         help='Re-encode videos whose output already exists'
     )
     parser.add_argument(
-        'directory',
+        '--show-settings',
+        action='store_true',
+        help=f'Only print the {COMMAND_METADATA_KEY} tag of already compressed videos'
+    )
+    parser.add_argument(
+        'path',
         type=str,
-        help='Directory containing the videos'
+        help='Directory containing the videos (or a single video with --show-settings)'
     )
 
     return parser
@@ -250,6 +261,25 @@ def build_ffmpeg_command(input_file, output_file, crf, preset, is_interlaced=Fal
     return cmd
 
 
+def add_command_metadata(cmd, input_file, temp_file, output_file):
+    """
+    Record the equivalent ffmpeg call in the output's metadata, as if ffmpeg had
+    been run directly on the original file (file names only, no directories).
+
+    Args:
+        cmd: ffmpeg command built by build_ffmpeg_command, writing to temp_file
+        input_file: Path to input video file
+        temp_file: Path the command actually writes to
+        output_file: Final output path
+
+    Returns:
+        list: Command with the metadata option added before the output path
+    """
+    paths = {str(input_file): input_file.name, str(temp_file): output_file.name}
+    recorded = shlex.join(paths.get(arg, arg) for arg in cmd)
+    return [*cmd[:-1], "-metadata", f"{COMMAND_METADATA_KEY}={recorded}", cmd[-1]]
+
+
 def copy_metadata(input_file, output_file):
     """
     Copy dates, GPS and camera metadata from the original with exiftool,
@@ -275,6 +305,45 @@ def copy_metadata(input_file, output_file):
     stat = input_file.stat()
     os.utime(output_file, (stat.st_atime, stat.st_mtime))
     return success
+
+
+def read_command_metadata(video_file):
+    """
+    Read the ffmpeg command recorded by add_command_metadata.
+
+    Returns:
+        str: Recorded command, or None if the tag is missing
+    """
+    cmd = [
+        "ffprobe",
+        "-v", "error",
+        "-show_entries", f"format_tags={COMMAND_METADATA_KEY}",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        str(video_file)
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    return result.stdout.strip() or None
+
+
+def show_settings(path):
+    """
+    Print the recorded compress settings of a video, or of every video in a directory.
+    """
+    if path.is_dir():
+        video_files = sorted(f for f in path.iterdir()
+                             if f.is_file() and f.suffix.lower() in VIDEO_EXTENSIONS)
+    else:
+        video_files = [path]
+
+    if not video_files:
+        print("No video files found in the directory")
+        return
+
+    for video_file in video_files:
+        print(f"→ {video_file.name}")
+        settings = read_command_metadata(video_file)
+        print(f"  {settings}" if settings else f"  (no {COMMAND_METADATA_KEY} tag)")
+        print()
 
 
 def notify_done(success_count, error_count):
@@ -303,12 +372,16 @@ def main():
     parser = setup_argument_parser()
     args = parser.parse_args()
 
-    # Validate directory
-    input_dir = Path(args.directory)
+    input_dir = Path(args.path)
     if not input_dir.exists():
-        print(f"Error: Directory not found: {input_dir}")
+        print(f"Error: Path not found: {input_dir}")
         sys.exit(1)
 
+    if args.show_settings:
+        show_settings(input_dir)
+        return
+
+    # Validate directory
     if not input_dir.is_dir():
         print(f"Error: Not a directory: {input_dir}")
         sys.exit(1)
@@ -375,6 +448,7 @@ def main():
                 is_interlaced, args.start, args.end,
                 build_audio_options(video_file)
             )
+            cmd = add_command_metadata(cmd, video_file, temp_file, output_file)
             print(f"  Running: {' '.join(cmd)}")
 
             timer = ProcessingTimer()
