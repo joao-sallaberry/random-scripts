@@ -422,12 +422,16 @@ def main():
     larger_files = []
 
     for video_file in video_files:
-        # Always output as .mp4, replace original extension
-        output_name = f"[ff{args.crf}-{args.preset}] {video_file.stem}.mp4"
+        # Always output as .mp4, replace original extension. The preset is only in the
+        # directory name, and is recorded in the compress_settings tag.
+        output_name = f"[ff{args.crf}] {video_file.stem}.mp4"
         output_file = output_dir / output_name
+        # Outputs from older versions of this script also had the preset in the file name
+        legacy_file = output_dir / f"[ff{args.crf}-{args.preset}] {video_file.stem}.mp4"
 
-        if output_file.exists() and not args.overwrite:
-            print(f"→ Skipping (already exists): {output_file.name}")
+        existing_file = next((f for f in (output_file, legacy_file) if f.exists()), None)
+        if existing_file and not args.overwrite:
+            print(f"→ Skipping (already exists): {existing_file.name}")
             print()
             skipped_count += 1
             continue
