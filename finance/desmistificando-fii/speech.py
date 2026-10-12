@@ -1,7 +1,8 @@
 """Normaliza texto do relatório para leitura em voz alta (pt-BR).
 
-Números, valores em R$ e porcentagens simples ficam para o motor de voz, que já os lê bem.
-Aqui tratamos o que ele costuma errar: tickers, siglas, datas, abreviações e símbolos.
+Números e porcentagens simples ficam para o motor de voz, que já os lê bem. Valores em R$ viram
+"8 reais e 50 centavos" (o Piper tropeça em "R$ 8,00"). Aqui tratamos também tickers, siglas, datas,
+abreviações e símbolos.
 """
 import math
 import re
@@ -82,6 +83,8 @@ PORCENTAGEM = re.compile(r"(?<![\d,])(\d+,\d+)\s?%")
 GRANDEZA = re.compile(r"(\d[\d.]*,\d+)\s?(MM|mi|milhões|milhão|bi|bilhões|bilhão)(?!\w)")
 REAIS_POR_EXTENSO = re.compile(r"R\$\s?(\d{1,3}(?:\.\d{3}){2,})(?:,\d+)?(?!\d|[.,]\d)")
 CENTAVOS = re.compile(r"R\$\s?0,(\d+)(?!\d|[.,]\d)")
+# o que sobra depois dos anteriores: R$ 8,00 → 8 reais; R$ 1.234,5 → 1234 reais e 50 centavos
+REAIS = re.compile(r"R\$\s?(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d+))?(?!\d|[.,]\d)")
 VALOR_GRANDE = re.compile(r"R\$\s?([\d.,]+)\s?(MM|mi|milhões|milhão|bi|bilhões|bilhão|mil)\b")
 
 
@@ -134,6 +137,17 @@ def centavos(m):
     return f"{valor} {'centavo' if valor == '1' else 'centavos'}"
 
 
+def reais(m):
+    inteiro, dec = m.group(1).replace(".", ""), m.group(2) or ""
+    if len(dec) > 2:  # R$ 1,234 (preço unitário): não dá para falar em centavos
+        return f"{inteiro},{dec} reais"
+    s = f"{inteiro} {'real' if inteiro == '1' else 'reais'}"
+    cent = int(dec.ljust(2, "0")) if dec else 0
+    if cent:
+        s += f" e {cent} {'centavo' if cent == 1 else 'centavos'}"
+    return s
+
+
 def falar(texto):
     t = URL.sub("", texto)
     t = REAIS_POR_EXTENSO.sub(reais_em_milhoes, t)
@@ -141,6 +155,7 @@ def falar(texto):
     t = PORCENTAGEM.sub(lambda m: f"{arredondar(float(m.group(1).replace(',', '.')))}%", t)
     t = VALOR_GRANDE.sub(valor_grande, t)
     t = CENTAVOS.sub(centavos, t)
+    t = REAIS.sub(reais, t)
     t = re.sub(r"(?<=\d)\s?MM(?!\w)|\bMM\b", " milhões", t)
     t = DATA.sub(data_falada, t)
     for sigla, fala in sorted(SIGLAS.items(), key=lambda kv: -len(kv[0])):
