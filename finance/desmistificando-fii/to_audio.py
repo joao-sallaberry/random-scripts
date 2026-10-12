@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Gera o áudio do relatório de FIIs (.md do to_md.py): uma faixa MP3 por seção + um .m4b com capítulos.
+"""Gera o áudio do relatório de FIIs (.md do to_md.py): um .m4b com capítulos (padrão) ou um MP3 por seção.
 
 Uso: python3 to_audio.py "Relatorio FII 41 - 2026-10-03.md" [--voz pt-BR-AntonioNeural] [--velocidade +10%]
      python3 to_audio.py relatorio.md --so 1,3,5      # só essas seções (números do .md)
-     python3 to_audio.py relatorio.md --com-disclaimer --sem-m4b
+     python3 to_audio.py relatorio.md --com-disclaimer --formato mp3
      python3 to_audio.py relatorio.md --motor piper [--voz pt_BR-cadu-medium]   # TTS local, sem internet
 
-Saída: pasta "<nome do md> - audio/" com "NN - <título>.mp3" por seção, "Relatorio FII NN.m4b"
-(com capítulos) e roteiro.txt (o texto exatamente como foi falado). Abertura, Carteira Recomendada e
+Saída: pasta "<nome do md> - audio/" com "Relatorio FII NN.m4b" (um capítulo por seção) ou, com
+--formato mp3, "NN - <título>.mp3" por seção; e roteiro.txt (o texto exatamente como foi falado). Abertura, Carteira Recomendada e
 Retornos ficam só no .md. Requer edge-tts (uv tool install edge-tts) e ffmpeg/ffprobe.
 
 --motor piper usa o Piper local (uv tool install piper-tts) com vozes em ~/.local/share/piper-voices; baixe com
@@ -139,10 +139,13 @@ def duracao(arq):
 
 
 def gerar_faixa(faixa, album, total, motor, voz, velocidade, tmp, pasta):
+    """Sem pasta (m4b), devolve o áudio cru do motor no tmp; com pasta, grava o MP3 final nela."""
     n, titulo, texto = faixa
     # edge-tts já entrega MP3; o Piper entrega WAV, que é codificado aqui
     bruto = Path(tmp) / f"{n:02d}.{'mp3' if motor == 'edge' else 'wav'}"
     tts(texto, bruto, motor, voz, velocidade, tmp)
+    if pasta is None:
+        return bruto
     final = pasta / nome_arquivo(n, titulo)
     codec = ["-c", "copy"] if motor == "edge" else ["-c:a", "libmp3lame", "-q:a", "4"]
     rodar(["ffmpeg", "-y", "-v", "error", "-i", str(bruto), *codec, "-id3v2_version", "3",
@@ -183,7 +186,8 @@ def main():
     ap.add_argument("--velocidade", default="+0%", help="ex.: +10%%, -5%%")
     ap.add_argument("--com-disclaimer", action="store_true", help="inclui o disclaimer no áudio")
     ap.add_argument("--so", help="só estas seções, ex.: 1,3 (números do .md)")
-    ap.add_argument("--sem-m4b", action="store_true", help="não gera o .m4b com capítulos")
+    ap.add_argument("--formato", choices=("m4b", "mp3"), default="m4b",
+                    help="m4b: um arquivo com capítulos (padrão); mp3: um arquivo por seção")
     ap.add_argument("--force", action="store_true", help="sobrescreve a pasta de saída")
     args = ap.parse_args()
 
@@ -223,13 +227,14 @@ def main():
 
         album = f"Relatório FII nº {edicao} ({data})"
         with tempfile.TemporaryDirectory() as tmp, ThreadPoolExecutor(PARALELO) as pool:
-            futuros = [pool.submit(gerar_faixa, f, album, len(faixas), args.motor, voz, args.velocidade, tmp, pasta)
-                       for f in faixas]
+            destino_faixas = pasta if args.formato == "mp3" else None
+            futuros = [pool.submit(gerar_faixa, f, album, len(faixas), args.motor, voz, args.velocidade, tmp,
+                                   destino_faixas) for f in faixas]
             arquivos = []
             for f, fut in zip(faixas, futuros):
                 arquivos.append(fut.result())
-                print(f"  ok {arquivos[-1].name}", flush=True)
-            if not args.sem_m4b:
+                print(f"  ok {f[0]:02d}. {f[1]}", flush=True)
+            if args.formato == "m4b":
                 m4b = pasta / f"Relatorio FII {edicao}.m4b"
                 total = gerar_m4b(faixas, arquivos, album, m4b, tmp)
             else:
@@ -238,7 +243,8 @@ def main():
         print(f"erro: {e}", file=sys.stderr)
         sys.exit(1)
 
-    print(f"{len(arquivos)} faixas, {int(total // 60)} min {int(total % 60)} s → {pasta}")
+    saida = m4b if args.formato == "m4b" else pasta
+    print(f"{len(arquivos)} seções, {int(total // 60)} min {int(total % 60)} s → {saida}")
 
 
 def falar_bloco(texto):
