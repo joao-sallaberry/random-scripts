@@ -4,10 +4,15 @@
 Uso: python3 to_audio.py "Relatorio FII 41 - 2026-10-03.md" [--voz pt-BR-AntonioNeural] [--velocidade +10%]
      python3 to_audio.py relatorio.md --so 1,3,5      # só essas seções (números do .md)
      python3 to_audio.py relatorio.md --com-disclaimer --sem-m4b
+     python3 to_audio.py relatorio.md --motor piper [--voz pt_BR-cadu-medium]   # TTS local, sem internet
 
 Saída: pasta "<nome do md> - audio/" com "NN - <título>.mp3" por seção, "Relatorio FII NN.m4b"
 (com capítulos) e roteiro.txt (o texto exatamente como foi falado). Abertura, Carteira Recomendada e
 Retornos ficam só no .md. Requer edge-tts (uv tool install edge-tts) e ffmpeg/ffprobe.
+
+--motor piper usa o Piper local (uv tool install piper-tts) com vozes em ~/.local/share/piper-voices; baixe com
+~/.local/share/uv/tools/piper-tts/bin/python -m piper.download_voices --data-dir ~/.local/share/piper-voices pt_BR-faber-medium
+(outras: pt_BR-cadu-medium, pt_BR-jeff-medium). --voz aceita o nome da voz ou o caminho de um .onnx.
 """
 import argparse
 import re
@@ -21,6 +26,8 @@ from pathlib import Path
 from speech import falar
 
 VOZ = "pt-BR-AntonioNeural"
+VOZ_PIPER = "pt_BR-faber-medium"
+PIPER_VOZES = Path.home() / ".local/share/piper-voices"
 TENTATIVAS = 3
 PARALELO = 4
 # seções que ficam só no .md (tabelas); o disclaimer entra só com --com-disclaimer
@@ -95,13 +102,32 @@ def rodar(cmd):
     return r.stdout
 
 
-def tts(texto, destino, voz, velocidade, tmp):
+def modelo_piper(voz):
+    """Nome da voz (pt_BR-faber-medium) ou caminho de um .onnx → caminho do modelo."""
+    arq = Path(voz).expanduser() if voz.endswith(".onnx") else PIPER_VOZES / f"{voz}.onnx"
+    if not arq.exists():
+        raise Erro(f"voz do Piper não encontrada: {arq} (veja como baixar no topo do to_audio.py)")
+    return arq
+
+
+def comando_tts(motor, voz, velocidade, entrada, destino):
+    if motor == "edge":
+        return ["edge-tts", "--voice", voz, f"--rate={velocidade}", "-f", str(entrada), "--write-media", str(destino)]
+    # "+10%" → falar 10% mais rápido → fonemas 1/1,1 do tamanho
+    m = re.fullmatch(r"([+-]\d+)%", velocidade)
+    if not m:
+        raise Erro(f"velocidade inválida: {velocidade} (use algo como +10% ou -5%)")
+    escala = 1 / (1 + int(m.group(1)) / 100)
+    return ["piper", "-m", str(modelo_piper(voz)), "-i", str(entrada), "-f", str(destino), f"--length-scale={escala:.3f}"]
+
+
+def tts(texto, destino, motor, voz, velocidade, tmp):
     entrada = Path(tmp) / (destino.stem + ".txt")
     entrada.write_text(texto, encoding="utf-8")
     ultimo = None
     for _ in range(TENTATIVAS):
         try:
-            rodar(["edge-tts", "--voice", voz, f"--rate={velocidade}", "-f", str(entrada), "--write-media", str(destino)])
+            rodar(comando_tts(motor, voz, velocidade, entrada, destino))
             return
         except Erro as e:
             ultimo = e
@@ -112,12 +138,14 @@ def duracao(arq):
     return float(rodar(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(arq)]))
 
 
-def gerar_faixa(faixa, album, total, voz, velocidade, tmp, pasta):
+def gerar_faixa(faixa, album, total, motor, voz, velocidade, tmp, pasta):
     n, titulo, texto = faixa
-    bruto = Path(tmp) / f"{n:02d}.mp3"
-    tts(texto, bruto, voz, velocidade, tmp)
+    # edge-tts já entrega MP3; o Piper entrega WAV, que é codificado aqui
+    bruto = Path(tmp) / f"{n:02d}.{'mp3' if motor == 'edge' else 'wav'}"
+    tts(texto, bruto, motor, voz, velocidade, tmp)
     final = pasta / nome_arquivo(n, titulo)
-    rodar(["ffmpeg", "-y", "-v", "error", "-i", str(bruto), "-c", "copy", "-id3v2_version", "3",
+    codec = ["-c", "copy"] if motor == "edge" else ["-c:a", "libmp3lame", "-q:a", "4"]
+    rodar(["ffmpeg", "-y", "-v", "error", "-i", str(bruto), *codec, "-id3v2_version", "3",
            "-metadata", f"title={titulo}", "-metadata", f"album={album}", "-metadata", "artist=Relatório Semanal FII",
            "-metadata", f"track={n + 1}/{total}", str(final)])
     return final
@@ -148,7 +176,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("md", type=Path)
     ap.add_argument("--out", type=Path, help="pasta de saída (padrão: '<md> - audio' ao lado do .md)")
-    ap.add_argument("--voz", default=VOZ, help=f"voz do edge-tts (padrão {VOZ}; ex.: pt-BR-FranciscaNeural)")
+    ap.add_argument("--motor", choices=("edge", "piper"), default="edge",
+                    help="edge (edge-tts, online; padrão) ou piper (local)")
+    ap.add_argument("--voz", help=f"voz do edge-tts (padrão {VOZ}; ex.: pt-BR-FranciscaNeural) "
+                                  f"ou do Piper (padrão {VOZ_PIPER}; ex.: pt_BR-cadu-medium, ou um .onnx)")
     ap.add_argument("--velocidade", default="+0%", help="ex.: +10%%, -5%%")
     ap.add_argument("--com-disclaimer", action="store_true", help="inclui o disclaimer no áudio")
     ap.add_argument("--so", help="só estas seções, ex.: 1,3 (números do .md)")
@@ -156,13 +187,18 @@ def main():
     ap.add_argument("--force", action="store_true", help="sobrescreve a pasta de saída")
     args = ap.parse_args()
 
-    for exe in ("edge-tts", "ffmpeg", "ffprobe"):
+    motor_exe = "edge-tts" if args.motor == "edge" else "piper"
+    voz = args.voz or (VOZ if args.motor == "edge" else VOZ_PIPER)
+    for exe in (motor_exe, "ffmpeg", "ffprobe"):
         if not shutil.which(exe):
-            dica = " (instale com: uv tool install edge-tts)" if exe == "edge-tts" else ""
+            dica = {"edge-tts": " (instale com: uv tool install edge-tts)",
+                    "piper": " (instale com: uv tool install piper-tts)"}.get(exe, "")
             print(f"erro: {exe} não encontrado{dica}", file=sys.stderr)
             sys.exit(1)
 
     try:
+        if args.motor == "piper":
+            modelo_piper(voz)
         cab, secoes = ler_md(args.md.read_text(encoding="utf-8"))
         edicao, data = metadados(cab)
         faixas = []
@@ -187,7 +223,7 @@ def main():
 
         album = f"Relatório FII nº {edicao} ({data})"
         with tempfile.TemporaryDirectory() as tmp, ThreadPoolExecutor(PARALELO) as pool:
-            futuros = [pool.submit(gerar_faixa, f, album, len(faixas), args.voz, args.velocidade, tmp, pasta)
+            futuros = [pool.submit(gerar_faixa, f, album, len(faixas), args.motor, voz, args.velocidade, tmp, pasta)
                        for f in faixas]
             arquivos = []
             for f, fut in zip(faixas, futuros):

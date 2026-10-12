@@ -8,7 +8,7 @@ A collection of standalone personal Python CLI scripts, grouped by domain:
 
 - `multimedia/` — batch operations over a directory of photos/videos (compress, fix shot dates, set GPS, extract RAW previews, isolate files without EXIF dates). They shell out to external tools rather than using Python libraries: `ffmpeg`/`ffprobe` for videos, `exiftool` for metadata, `dcraw` for RAW files, and `notify-send` for desktop notifications.
 - `finance/` — B3 (Brazilian stock exchange) data processing with pandas/openpyxl (`transactions_from_b3.py`) and an exploratory Jupyter notebook (`dfev.ipynb`).
-  - `desmistificando-fii/` — `to_md.py` + `to_audio.py`, a pipeline for the DesmistificandoFII weekly REIT report: browser-saved HTML → Markdown (one `## NN. Title` section per topic/fund, stdlib only) → one MP3 per section plus a chaptered `.m4b` (shells out to `edge-tts` and `ffmpeg`/`ffprobe`). The code and its messages are in Portuguese.
+  - `desmistificando-fii/` — `to_md.py` + `to_audio.py`, a pipeline for the DesmistificandoFII weekly REIT report: browser-saved HTML → Markdown (one `## NN. Title` section per topic/fund, stdlib only) → one MP3 per section plus a chaptered `.m4b` (shells out to `edge-tts`, or the local `piper` with `--motor piper`, and `ffmpeg`/`ffprobe`). The code and its messages are in Portuguese.
 
 There is no build system, test suite, or linter configured.
 
