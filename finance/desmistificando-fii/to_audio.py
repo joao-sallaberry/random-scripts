@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gera o áudio do relatório de FIIs (.md do to_md.py): um .m4b com capítulos (padrão) ou um MP3 por seção.
+"""Gera o áudio do relatório de FIIs (.md do arquivar.py): um .m4b com capítulos (padrão) ou um MP3 por seção.
 
 Uso: python3 to_audio.py "Relatorio FII 41 - 2026-10-03.md" [--voz pt-BR-AntonioNeural] [--velocidade +10%]
      python3 to_audio.py relatorio.md --so 1,3,5      # só essas seções (números do .md)
@@ -44,7 +44,7 @@ def ler_md(texto):
     cab = partes[0]
     secoes = [(int(partes[i]), partes[i + 1].strip(), partes[i + 2].strip()) for i in range(1, len(partes), 3)]
     if not secoes:
-        raise Erro("nenhuma seção '## NN. Título' no arquivo: ele foi gerado pelo to_md.py?")
+        raise Erro("nenhuma seção '## NN. Título' no arquivo: ele foi gerado pelo arquivar.py?")
     return cab, secoes
 
 
@@ -57,7 +57,7 @@ def frases(corpo):
             continue
         if l.startswith("Fonte:"):
             continue
-        if l.startswith("[Imagem"):
+        if l.startswith(("[Imagem", "![")):
             out.append("Neste ponto, o relatório traz uma imagem.")
             continue
         l = re.sub(r"^#+\s*", "", l)
