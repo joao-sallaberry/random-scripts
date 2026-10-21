@@ -71,7 +71,7 @@ def frases(corpo):
 def fundos_falados(linha_fundos):
     """'Fundos: RBRX11 (Multiestratégia, R$ 7,36) · ...' → 'RBRX11, multiestratégia.' (sem a cotação)."""
     out = []
-    for m in re.finditer(r"([A-Z]{4}\d{2}) \(([^)]*)\)", linha_fundos):
+    for m in re.finditer(r"([A-Z]{4}\d{2}[A-Z]?) \(([^)]*)\)", linha_fundos):
         seg = m.group(2).split("R$")[0].strip(" ,")
         out.append(f"{m.group(1)}, {seg.lower()}." if seg else f"{m.group(1)}.")
     return " ".join(out)

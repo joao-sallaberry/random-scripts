@@ -26,7 +26,7 @@ from urllib.parse import quote, unquote
 
 IGNORAR = {"script", "style", "svg", "button", "noscript", "canvas"}
 BLOCOS = {"p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "li", "header", "section", "table", "br", "ul", "ol"}
-TICKER = re.compile(r"^[A-Z]{4}1[1-3]$")
+TICKER = re.compile(r"^[A-Z]{4}1[1-3][A-Z]?$")  # FIIP11B: classe de cotas
 PRECO = re.compile(r"^R\$\s?[\d.]+,\d{2}$")
 # alt automático do Office ("Interface gráfica do usuário, Texto, Aplicativo ... gerado por IA"): descartado
 ALT_IA = re.compile(r"O conteúdo gerado por IA pode estar incorreto")
@@ -316,6 +316,9 @@ def extrair(html):
     for m in marcas:
         cards, j = [], m - 1
         while (lido := ler_card(blocos, j)):
+            # ticker repetido: já é a lista "Fundos abordados", colada aos cards em relatórios de uma seção só
+            if any(c["ticker"] == lido[1]["ticker"] for c in cards):
+                break
             cards.insert(0, lido[1])
             j = lido[0] - 1
         if cards:
@@ -448,7 +451,7 @@ def ler_arquivado(arq):
     secoes = []
     for s in re.finditer(r"^## (\d+)\. (.+)\n\n(?:Fundos: (.+))?", md, flags=re.M):
         fundos = []
-        for f in re.finditer(r"([A-Z]{4}\d{2}) \(([^)]*)\)", s.group(3) or ""):
+        for f in re.finditer(r"([A-Z]{4}\d{2}[A-Z]?) \(([^)]*)\)", s.group(3) or ""):
             seg, _, preco = f.group(2).partition("R$")
             fundos.append((f.group(1), seg.strip(" ,"), f"R$ {preco.strip()}" if preco else ""))
         secoes.append((int(s.group(1)), s.group(2), fundos))

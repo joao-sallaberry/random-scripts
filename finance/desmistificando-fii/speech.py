@@ -74,7 +74,7 @@ NUMEROS_TICKER = {"3": "três", "4": "quatro", "5": "cinco", "6": "seis", "11": 
 MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto",
          "setembro", "outubro", "novembro", "dezembro"]
 
-TICKER = re.compile(r"\b([A-Z]{4})(11|12|13|3|4|5|6)\b")
+TICKER = re.compile(r"\b([A-Z]{4})(11|12|13|3|4|5|6)([A-Z]?)\b")  # FIIP11B: classe de cotas
 DATA = re.compile(r"\b(\d{1,2})/(\d{1,2})(?:/(\d{4}))?\b")
 URL = re.compile(r"https?://\S+")
 # Milhões e bilhões com casas decimais são arredondados para 2 algarismos significativos:
@@ -90,7 +90,8 @@ VALOR_GRANDE = re.compile(r"R\$\s?([\d.,]+)\s?(MM|mi|milhões|milhão|bi|bilhõe
 
 def soletrar_ticker(m):
     raiz = TICKERS.get(m.group(1)) or " ".join(LETRAS[c] for c in m.group(1))
-    return f"{raiz} {NUMEROS_TICKER[m.group(2)]}"
+    classe = f" {LETRAS[m.group(3)]}" if m.group(3) else ""
+    return f"{raiz} {NUMEROS_TICKER[m.group(2)]}{classe}"
 
 
 def data_falada(m):
