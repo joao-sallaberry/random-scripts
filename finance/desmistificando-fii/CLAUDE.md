@@ -15,6 +15,7 @@ Pipeline for the DesmistificandoFII weekly REIT report: browser-saved HTML → a
   - `TICKERS` maps tickers to spoken forms, and unknown tickers are spelled out via `LETRAS`, including a class suffix like `FIIP11B`.
   - `SIGLAS` covers acronyms and abbreviations; `INGLES` respells English words.
   - Test with `python3 speech.py "frase"`.
+- The `resumo-fii` skill (`.claude/skills/resumo-fii/`) summarizes a fund's recent analyses from the archived `.md` files. Its `buscar.py` reads the index's "Por fundo" entries and the `## NN. Title` sections, so keep it in sync with that format.
 - If `edge-tts` fails with 403, upgrade it with `uv tool upgrade edge-tts`.
 
 ## Parsing
