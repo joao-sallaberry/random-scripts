@@ -31,6 +31,8 @@ PRECO = re.compile(r"^R\$\s?[\d.]+,\d{2}$")
 # alt automático do Office ("Interface gráfica do usuário, Texto, Aplicativo ... gerado por IA"): descartado
 ALT_IA = re.compile(r"O conteúdo gerado por IA pode estar incorreto")
 FINAIS = ("Carteira Recomendada", "Carteira FIIs")
+# títulos de seção em texto que, logo após um card sem cotação, não são o segmento do fundo (2026 nº 6)
+TITULOS = ("Carta aos Leitores", "Principais Destaques")
 DATA_URI = re.compile(r"data:image/([\w.+-]+)?(;base64)?,(.*)", re.S)
 EXTENSOES = {"jpeg": ".jpg", "svg+xml": ".svg"}
 # assinatura dos formatos, para arquivos salvos sem extensão
@@ -150,7 +152,7 @@ def ler_card(blocos, j):
     k, preco, segmento = j, None, None
     if PRECO.match(texto_de(blocos[k])):
         preco, k = texto_de(blocos[k]), k - 1
-    if k >= 0 and not TICKER.match(texto_de(blocos[k])):
+    if k >= 0 and not TICKER.match(texto_de(blocos[k])) and not (preco is None and texto_de(blocos[k]) in TITULOS):
         segmento, k = texto_de(blocos[k]), k - 1
     if k < 1 or not TICKER.match(texto_de(blocos[k])) or texto_de(blocos[k - 1]) != "FII":
         return None
@@ -256,7 +258,8 @@ def secoes_finais(blocos, ini):
         else:
             textos.append(b)
     md = "\n\n".join(filter(None, [corpo_md(textos), tabela_md(linhas)]))
-    secoes.append({"titulo": "Carteira Recomendada", "fundos": [], "md": md, "tipo": "carteira"})
+    if ini < len(blocos) and blocos[ini][1] in FINAIS:
+        secoes.append({"titulo": "Carteira Recomendada", "fundos": [], "md": md, "tipo": "carteira"})
 
     if i_ret is not None:
         fim = i_disc if i_disc is not None else len(blocos)
@@ -323,10 +326,16 @@ def extrair(html):
             j = lido[0] - 1
         if cards:
             cabecalhos.append((j + 1, m, None, cards))
+        elif blocos[m - 1][0] == "img":
+            # seção cujo cabeçalho é só uma imagem (2025 nº 29): a imagem fica no corpo
+            cabecalhos.append((m - 1, m, blocos[m - 1][1][0] or "Sem título", []))
         else:
             cabecalhos.append((m - 1, m, texto_de(blocos[m - 1]), []))
 
+    # relatório extraordinário pode não ter a carteira (2026 nº 6): termina no disclaimer
     i_final = indice(blocos, lambda b: b[1] in FINAIS, marcas[-1])
+    if i_final is None:
+        i_final = indice(blocos, lambda b: texto_de(b).lower() == "disclaimer", marcas[-1])
     if i_final is None:
         i_final = len(blocos)
 
@@ -338,11 +347,12 @@ def extrair(html):
         corpo_ini = m + 1
         if corpo_ini < len(blocos) and texto_de(blocos[corpo_ini]) == "Order":
             corpo_ini += 1
+        cabeca = [blocos[cab_ini]] if blocos[cab_ini][0] == "img" else []
         corpo_fim = cabecalhos[n + 1][0] if n + 1 < len(cabecalhos) else i_final
         secoes.append({
             "titulo": titulo or ", ".join(c["ticker"] for c in cards),
             "fundos": cards,
-            "md": corpo_md(blocos[corpo_ini:corpo_fim]),
+            "md": corpo_md(cabeca + blocos[corpo_ini:corpo_fim]),
             "tipo": "fundos" if cards else "texto",
         })
     secoes += secoes_finais(blocos, i_final)
