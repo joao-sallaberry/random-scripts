@@ -18,6 +18,8 @@ Pipeline for the DesmistificandoFII weekly REIT report: browser-saved HTML → a
 - The `resumo-fii` skill (`.claude/skills/resumo-fii/`) summarizes a fund's recent analyses from the archived `.md` files. Its `buscar.py` reads the index's "Por fundo" entries and the `## NN. Title` sections, so keep it in sync with that format.
 - If `edge-tts` fails with 403, upgrade it with `uv tool upgrade edge-tts`.
 
+- `README.md` (pt-BR) introduces the folder's tools and teaches how to use them. When a user-facing feature or option changes, update it too. Keep internal decisions and maintenance details (parsing rules, pronunciation dictionaries, regression checks) here, not there.
+
 ## Parsing
 
 - Sections are found by the `Ouvir`/`Order` marker text preceding each topic. The title is right before the marker:

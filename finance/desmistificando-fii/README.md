@@ -5,6 +5,7 @@ Scripts para arquivar e ouvir o Relatório Semanal de FIIs do DesmistificandoFII
 1. Você salva a página do relatório pelo navegador.
 2. O `arquivar.py` transforma a página num Markdown com as imagens e mantém um índice de todas as edições.
 3. O `to_audio.py` gera o áudio, em `.m4b` com capítulos ou um MP3 por seção.
+4. A skill `resumo-fii` do Claude Code resume o que os relatórios dizem de um fundo.
 
 Os scripts usam só a biblioteca padrão do Python. Os relatórios são conteúdo de assinante e ficam fora do repositório.
 
@@ -62,11 +63,6 @@ python3 verificar.py /tmp/teste --curtas 150
   - títulos de seção estranhos;
   - arquivos que o `to_audio.py` não consegue ler.
 - **Casos normais:** alguns apontamentos são do próprio relatório, como um ticker sozinho numa linha usado de subtítulo pelo autor.
-- **Depois de mudar o `arquivar.py`:** dá para comparar o arquivo regerado com o atual:
-  ```sh
-  python3 arquivar.py <RELATORIOS_DIR>/*/original.html --destino /tmp/regerado
-  python3 verificar.py /tmp/regerado --comparar <RELATORIOS_DIR>
-  ```
 
 ## 4. Ouvir
 
@@ -80,15 +76,27 @@ python3 to_audio.py relatorio.md --motor piper --voz pt_BR-cadu-medium
 - **Saída:** fica na pasta `<nome do md> - audio/`, ao lado do `.md`. Ela contém o `Relatorio FII NN.m4b`, com um capítulo por seção, ou `NN - <título>.mp3` com `--formato mp3`. Também tem o `roteiro.txt`, com o texto exatamente como foi falado.
 - **Seções que ficam fora do áudio:** a abertura, a Carteira Recomendada e os Retornos ficam só no `.md`. O Disclaimer só entra com `--com-disclaimer`.
 
-### Pronúncia
+## 5. Resumir as análises de um fundo
 
-O `speech.py` adapta o texto para a voz:
-- **Tickers:** `TEPP11` vira "tépi onze"; tickers que não estão em `TICKERS` são soletrados.
-- **Valores:** R$ 8,50 vira "8 reais e 50 centavos"; milhões e bilhões são arredondados.
-- **Outros:** datas, siglas (`SIGLAS`) e palavras em inglês (`INGLES`).
+Com o Claude Code aberto nesta pasta:
 
-Para ajustar uma pronúncia, acrescente a entrada no dicionário correspondente e teste:
+```
+/resumo-fii GGRC11
+/resumo-fii LVBI11 --ultimas 20
+/resumo-fii BTLG11 --desde 2025-01-01
+```
+
+Também funciona pedindo em texto, como "qual a análise recente do RBHG11?". O resumo usa só os relatórios arquivados e traz:
+- a recomendação atual e se o fundo está na Carteira Recomendada;
+- o rendimento recorrente, o lucro e a distribuição por cota, com a edição de onde saiu cada número;
+- a alavancagem;
+- aquisições, vendas, emissões e outros eventos, as mudanças de recomendação e a conclusão do analista.
+
+Por padrão, olha as 8 edições mais recentes com seção sobre o fundo, mais as menções a ele em outras seções.
+
+Para ver o material bruto sem o Claude:
 
 ```sh
-python3 speech.py "O TEPP11 pagou R$ 0,71 por cota em 15/10"
+python3 .claude/skills/resumo-fii/buscar.py GGRC11 --ultimas 3
+python3 .claude/skills/resumo-fii/buscar.py GGRC11 --desde 2026-01-01 --sem-mencoes
 ```
