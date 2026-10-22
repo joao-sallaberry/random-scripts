@@ -32,3 +32,4 @@ Multimedia scripts import `from util import ...`, so run them from inside `multi
 - Metadata scripts modify files in place (`exiftool -overwrite_original`); there are no backups.
 - Timezone handling uses `zoneinfo`; Brazil time (`America/Sao_Paulo`) is the common default.
 - When a script's CLI changes, update its module docstring usage block to match.
+- Never commit local paths or other details of the user's environment (home directory, download folders, notebook outputs that print them). Put them in an untracked `.env` next to the code that reads it, with a committed `.env.example`, and use generic paths in usage examples. `finance/.env` has `DFEV_DIR` (read by `dfev.ipynb`); `finance/desmistificando-fii/.env` has `RELATORIOS_DIR`.
