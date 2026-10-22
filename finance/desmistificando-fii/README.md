@@ -21,6 +21,14 @@ Os scripts usam só a biblioteca padrão do Python. Os relatórios são conteúd
         --data-dir ~/.local/share/piper-voices pt_BR-faber-medium
     ```
 
+## Configuração
+
+Copie o `.env.example` para `.env` e defina `RELATORIOS_DIR`, a pasta onde os relatórios ficam arquivados. O `.env` não vai para o git.
+
+```sh
+cp .env.example .env
+```
+
 ## 1. Salvar o relatório
 
 Abra o relatório no site e salve com **Salvar como → Página da Web, completa**. O navegador grava o `.html` e uma pasta `<nome>_files/` com as imagens. Os dois precisam ficar juntos.
@@ -29,12 +37,12 @@ Abra o relatório no site e salve com **Salvar como → Página da Web, completa
 
 ```sh
 python3 arquivar.py relatorio-FIIS-43-17-10-2026.html
-python3 arquivar.py pasta-com-relatorios/             # todos os .html de uma pasta
+python3 arquivar.py pasta-com-relatorios/         # todos os .html de uma pasta
 python3 arquivar.py                                # só refaz o indice.md
 python3 arquivar.py relatorio.html --destino ~/outra/pasta --force
 ```
 
-Cada edição vai para `<RELATORIOS_DIR>/` (o padrão; pode ser trocado com `--destino`):
+Cada edição vai para a pasta `RELATORIOS_DIR` do `.env` (ou para a de `--destino`):
 
 ```
 2026-10-17 - Relatorio FII 43/

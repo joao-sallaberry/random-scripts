@@ -2,11 +2,11 @@
 """Arquiva o Relatório Semanal de FIIs (DesmistificandoFII) salvo pelo navegador: HTML → Markdown, uma seção por tópico.
 
 Uso: python3 arquivar.py relatorio-FIIS-43-17-10-2026/relatorio-FIIS-43-17-10-2026.html
-     python3 arquivar.py relatorio-FIIS-*/          # vários de uma vez (pastas ou .html)
+     python3 arquivar.py relatorio-FIIS-*/                   # vários de uma vez (pastas ou .html)
      python3 arquivar.py                                         # só regera o indice.md
      python3 arquivar.py relatorio.html --destino ~/outra/pasta --force
 
-Cada relatório vai para "<destino>/AAAA-MM-DD - Relatorio FII NN/" (destino padrão: <RELATORIOS_DIR>):
+Cada relatório vai para "<destino>/AAAA-MM-DD - Relatorio FII NN/" (destino padrão: RELATORIOS_DIR do .env):
   Relatorio FII NN - AAAA-MM-DD.md  metadados (front matter YAML) + uma seção "## NN. Título" por tópico
   imagens/                          figuras do texto, copiadas da pasta "<nome>_files/" salva junto com a página
   original.html                     o HTML sem scripts e apontando para imagens/; serve de entrada para regerar o .md
@@ -24,6 +24,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import quote, unquote
 
+from config import RELATORIOS_DIR
+
 IGNORAR = {"script", "style", "svg", "button", "noscript", "canvas"}
 BLOCOS = {"p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "li", "header", "section", "table", "br", "ul", "ol"}
 TICKER = re.compile(r"^[A-Z]{4}1[1-3][A-Z]?$")  # FIIP11B: classe de cotas
@@ -37,7 +39,6 @@ DATA_URI = re.compile(r"data:image/([\w.+-]+)?(;base64)?,(.*)", re.S)
 EXTENSOES = {"jpeg": ".jpg", "svg+xml": ".svg"}
 # assinatura dos formatos, para arquivos salvos sem extensão
 ASSINATURAS = {b"\x89PNG": ".png", b"\xff\xd8\xff": ".jpg", b"GIF8": ".gif", b"RIFF": ".webp", b"<svg": ".svg"}
-DESTINO = Path.home() / "relatorios"
 INDICE = "indice.md"
 
 
@@ -507,9 +508,11 @@ def gerar_indice(destino):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("entradas", nargs="*", type=Path, help="HTMLs salvos, ou pastas com eles")
-    ap.add_argument("--destino", type=Path, default=DESTINO, help=f"pasta do arquivo (padrão: {DESTINO})")
+    ap.add_argument("--destino", type=Path, default=RELATORIOS_DIR, help="pasta do arquivo (padrão: RELATORIOS_DIR do .env)")
     ap.add_argument("--force", action="store_true", help="regera edições já arquivadas")
     args = ap.parse_args()
+    if args.destino is None:
+        ap.error("defina RELATORIOS_DIR no .env (veja .env.example) ou use --destino")
 
     htmls = []
     for e in args.entradas:

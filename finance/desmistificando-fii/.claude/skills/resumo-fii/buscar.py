@@ -9,11 +9,14 @@ Seções dedicadas vêm do "Por fundo" do indice.md. Menções são parágrafos 
 (fora da carteira, dos retornos e das linhas "Fundos:"), nas edições do mesmo período.
 """
 import argparse
+import difflib
 import re
 import sys
 from pathlib import Path
 
-ARQUIVO = Path.home() / "relatorios"
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # config.py, na pasta do projeto
+from config import RELATORIOS_DIR  # noqa: E402
+
 SECAO = re.compile(r"^## (\d+)\. (.*)$", re.M)
 ENTRADA = re.compile(r"^- (\d{4}-\d{2}-\d{2}) · nº (\d+) · \[(\d+)\. [^\]]*\]\(([^)]+)\)(?: · (.*))?$")
 FORA = ("Carteira Recomendada", "Retornos", "Disclaimer")
@@ -30,13 +33,17 @@ def main():
     ap.add_argument("--ultimas", type=int, default=8, metavar="N", help="edições com seção do fundo (padrão: 8)")
     ap.add_argument("--desde", metavar="AAAA-MM-DD", help="em vez de --ultimas, tudo a partir desta data")
     ap.add_argument("--sem-mencoes", action="store_true", help="só as seções dedicadas")
-    ap.add_argument("--arquivo", type=Path, default=ARQUIVO)
+    ap.add_argument("--arquivo", type=Path, default=RELATORIOS_DIR, help="padrão: RELATORIOS_DIR do .env")
     args = ap.parse_args()
+    if args.arquivo is None:
+        ap.error("defina RELATORIOS_DIR no .env da pasta desmistificando-fii (veja .env.example)")
 
     indice = (args.arquivo / "indice.md").read_text(encoding="utf-8")
     bloco = re.search(rf"^### {re.escape(args.ticker)}(?: — ([^\n]*))?\n(.*?)(?=^### |\Z)", indice, re.M | re.S)
     if not bloco:
-        sys.exit(f"erro: {args.ticker} não aparece no índice")
+        tickers = re.findall(r"^### (\S+)", indice, re.M)
+        parecidos = difflib.get_close_matches(args.ticker, tickers, n=5, cutoff=0.6)
+        sys.exit(f"erro: {args.ticker} não aparece no índice" + (f" (parecidos: {', '.join(parecidos)})" if parecidos else ""))
     entradas = [m.groups() for m in map(ENTRADA.match, bloco[2].splitlines()) if m]
     entradas = [e for e in entradas if e[0] >= args.desde] if args.desde else entradas[: args.ultimas]
     if not entradas:

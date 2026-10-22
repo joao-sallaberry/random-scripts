@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Confere os relatórios arquivados pelo arquivar.py: links de imagem, sobras de parsing e leitura pelo to_audio.py.
 
-Uso: python3 verificar.py                                   # o arquivo padrão (<RELATORIOS_DIR>)
+Uso: python3 verificar.py                                   # o arquivo padrão (RELATORIOS_DIR do .env)
      python3 verificar.py /tmp/teste --curtas 150           # também lista seções com menos de 150 caracteres
-     python3 verificar.py /tmp/regerado --comparar <RELATORIOS_DIR>
+     python3 verificar.py /tmp/regerado --comparar ~/relatorios
 
 Para cada pasta "AAAA-MM-DD - Relatorio FII NN/", aponta:
   - link ![...](imagens/...) sem o arquivo, data: URI que sobrou no .md e imagens não salvas com a página;
@@ -20,7 +20,7 @@ import re
 import sys
 from pathlib import Path
 
-from arquivar import DESTINO
+from config import RELATORIOS_DIR
 from to_audio import Erro, ler_md
 
 LINK = re.compile(r"!\[[^\]]*\]\(([^)]+)\)")
@@ -63,10 +63,13 @@ def problemas(md, curtas):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("pasta", nargs="?", type=Path, default=DESTINO, help=f"arquivo a conferir (padrão: {DESTINO})")
+    ap.add_argument("pasta", nargs="?", type=Path, default=RELATORIOS_DIR,
+                    help="arquivo a conferir (padrão: RELATORIOS_DIR do .env)")
     ap.add_argument("--curtas", type=int, metavar="N", help="listar seções com menos de N caracteres")
     ap.add_argument("--comparar", type=Path, metavar="REF", help="arquivo de referência para comparar os .md")
     args = ap.parse_args()
+    if args.pasta is None:
+        ap.error("defina RELATORIOS_DIR no .env (veja .env.example) ou passe a pasta")
 
     mds = sorted(args.pasta.glob("*/*.md"))
     if not mds:

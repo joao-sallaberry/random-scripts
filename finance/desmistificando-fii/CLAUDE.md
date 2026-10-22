@@ -4,6 +4,7 @@ Pipeline for the DesmistificandoFII weekly REIT report: browser-saved HTML → a
 
 ## Scripts
 
+- Machine-specific settings live in the untracked `.env` (template: `.env.example`), read by `config.py`; an environment variable of the same name wins. `RELATORIOS_DIR` is the archive folder, the default for `arquivar.py --destino`, `verificar.py` and `buscar.py`. Never commit local paths or other details of the user's environment: put them in `.env` and refer to them by variable name.
 - `arquivar.py [html|dir ...] [--destino DIR] [--force]` archives into `<RELATORIOS_DIR>/AAAA-MM-DD - Relatorio FII NN/`:
   - `Relatorio FII NN - AAAA-MM-DD.md`, with JSON-valued YAML front matter (`edicao`, `divulgacao`, `periodo`, `analista`, `fundos`) and one `## NN. Title` section per topic or fund.
   - `imagens/NN.ext`, copied from the browser's `<name>_files/` or decoded from `data:` URIs (2022), and linked as `![alt](imagens/NN.ext)`.
@@ -38,7 +39,7 @@ Pipeline for the DesmistificandoFII weekly REIT report: browser-saved HTML → a
 
 ## Sources and archiving workflow
 
-- The user saves the pages with the browser into `<downloads>/<ano>/`. Files are named `relatorio-semanal-N-*.html` or `relatorio-FIIS-N-DD-MM-AAAA.html`, each with its `_files/` folder. Edition numbers restart every year, and the number in the file name may be wrong (2022 `-79.html` is edition 49).
+- The user saves the pages with the browser into a downloads folder, one subfolder per year. Files are named `relatorio-semanal-N-*.html` or `relatorio-FIIS-N-DD-MM-AAAA.html`, each with its `_files/` folder. Edition numbers restart every year, and the number in the file name may be wrong (2022 `-79.html` is edition 49).
 - The reports are paid content. They stay outside the git repo; never commit them.
 - Before archiving a new batch:
   1. Check the sources:

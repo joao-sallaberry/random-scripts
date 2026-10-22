@@ -6,7 +6,7 @@ argument-hint: TICKER [--ultimas N | --desde AAAA-MM-DD]
 
 # Resumo das análises de um FII
 
-Responda em pt-BR e use **só** os `.md` arquivados em `<RELATORIOS_DIR>/`, nunca os `original.html` ou a internet. O uso é local, então pode citar trechos dos relatórios à vontade, mas não grave o resumo dentro do repositório (é conteúdo de assinante).
+Responda em pt-BR e use **só** os `.md` arquivados (na pasta `RELATORIOS_DIR` do `.env` do projeto, que o `buscar.py` já lê), nunca os `original.html` ou a internet. O uso é local, então pode citar trechos dos relatórios à vontade, mas não grave o resumo dentro do repositório (é conteúdo de assinante).
 
 ## 1. Buscar o material
 
@@ -18,7 +18,8 @@ python3 ${CLAUDE_SKILL_DIR}/buscar.py TICKER --desde 2025-01-01
 
 - Imprime as seções dedicadas ao fundo (pelo "Por fundo" do `indice.md`), da mais recente para a mais antiga, e os parágrafos de outras seções que citam o ticker (cartas aos leitores, seções de outros fundos).
 - Repasse os argumentos do usuário (`$ARGUMENTS`). Sem período definido, comece pelo padrão e amplie com `--ultimas` se o material for pouco ou se for preciso histórico para comparar.
-- Se o ticker não estiver no índice, diga isso e sugira tickers parecidos (`grep '^### ' <RELATORIOS_DIR>/indice.md`).
+- Se o ticker não estiver no índice, o `buscar.py` sai com erro e sugere tickers parecidos; repasse isso ao usuário.
+- Se reclamar que falta `RELATORIOS_DIR`, peça ao usuário para criar o `.env` a partir do `.env.example`.
 - Para rendimento recorrente, quase sempre vale buscar também mais para trás (`--desde` um ano antes) com `| grep -n -i -E 'recorrent|lucro|distribu|dividendo|rendimento|R\$ 0,'`, porque o número nem sempre aparece na edição mais recente.
 - Para a alavancagem, procure no mesmo material do resumo (mesmo período) com `| grep -n -i -E 'alavanc|compromissad|endivid|dívida|obrigaç|LTV|% do PL|% do patrim'`. Em fundos de recebíveis ela costuma aparecer como operações compromissadas; em tijolo, como CRIs emitidos para comprar imóveis ou obrigações por aquisição a pagar.
 
