@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A collection of standalone personal Python CLI scripts, grouped by domain:
 
 - `multimedia/` — batch operations over a directory of photos/videos (compress, fix shot dates, set GPS, extract RAW previews, isolate files without EXIF dates). They shell out to external tools rather than using Python libraries: `ffmpeg`/`ffprobe` for videos, `exiftool` for metadata, `dcraw` for RAW files, and `notify-send` for desktop notifications.
-- `finance/` — B3 (Brazilian stock exchange) data processing with pandas/openpyxl (`transactions_from_b3.py`) and an exploratory Jupyter notebook (`dfev.ipynb`).
+- `finance/` — B3 (Brazilian stock exchange) data processing with pandas/openpyxl (`transactions_from_b3.py`).
   - `desmistificando-fii/` — `arquivar.py` + `to_audio.py` (+ `verificar.py`): the DesmistificandoFII weekly REIT report, browser-saved HTML → archived Markdown with images and an index → audio. See `finance/desmistificando-fii/CLAUDE.md`.
 
 There is no build system, test suite, or linter configured.
@@ -32,4 +32,4 @@ Multimedia scripts import `from util import ...`, so run them from inside `multi
 - Metadata scripts modify files in place (`exiftool -overwrite_original`); there are no backups.
 - Timezone handling uses `zoneinfo`; Brazil time (`America/Sao_Paulo`) is the common default.
 - When a script's CLI changes, update its module docstring usage block to match.
-- Never commit local paths or other details of the user's environment (home directory, download folders, notebook outputs that print them). Put them in an untracked `.env` next to the code that reads it, with a committed `.env.example`, and use generic paths in usage examples. `finance/.env` has `DFEV_DIR` (read by `dfev.ipynb`); `finance/desmistificando-fii/.env` has `RELATORIOS_DIR`.
+- Never commit local paths or other details of the user's environment (home directory, download folders). Put them in an untracked `.env` next to the code that reads it, with a committed `.env.example`, and use generic paths in usage examples. `finance/desmistificando-fii/.env` has `RELATORIOS_DIR`.
