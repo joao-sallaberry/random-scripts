@@ -9,6 +9,7 @@ A collection of standalone personal Python CLI scripts, grouped by domain:
 - `multimedia/` — batch operations over a directory of photos/videos (compress, fix shot dates, set GPS, extract RAW previews, isolate files without EXIF dates). They shell out to external tools rather than using Python libraries: `ffmpeg`/`ffprobe` for videos, `exiftool` for metadata, `dcraw` for RAW files, and `notify-send` for desktop notifications.
 - `finance/` — B3 (Brazilian stock exchange) data processing with pandas/openpyxl (`transactions_from_b3.py`).
   - `desmistificando-fii/` — `arquivar.py` + `to_audio.py` (+ `verificar.py`): the DesmistificandoFII weekly REIT report, browser-saved HTML → archived Markdown with images and an index → audio. See `finance/desmistificando-fii/CLAUDE.md`.
+  - `analises-fiis/` — the `historico-fii-youtube` Claude Code skill (`.claude/skills/historico-fii-youtube/`, run Claude from `finance/analises-fiis/`): per-fund, per-channel history (summary + sentiment) of REIT YouTube videos, from auto-captions via `yt-dlp`. Channels live in `CANAIS` in `buscar_videos.py` (keep the skill's `README.md` table in sync). Histories go to `<HISTORICO_DIR>/<channel slug>/<BASE>.md`, outside the repo; the script finds already-covered videos by the `watch?v=<id>` links in the `### dd/mm/aaaa: [title](url)` headings, so keep that format in sync with `SKILL.md`. `glossario.md` maps auto-caption misspellings to correct names ("(confirmado)" = user-confirmed).
 
 There is no build system, test suite, or linter configured.
 
@@ -32,4 +33,4 @@ Multimedia scripts import `from util import ...`, so run them from inside `multi
 - Metadata scripts modify files in place (`exiftool -overwrite_original`); there are no backups.
 - Timezone handling uses `zoneinfo`; Brazil time (`America/Sao_Paulo`) is the common default.
 - When a script's CLI changes, update its module docstring usage block to match.
-- Never commit local paths or other details of the user's environment (home directory, download folders). Put them in an untracked `.env` next to the code that reads it, with a committed `.env.example`, and use generic paths in usage examples. `finance/desmistificando-fii/.env` has `RELATORIOS_DIR`.
+- Never commit local paths or other details of the user's environment (home directory, download folders). Put them in an untracked `.env` next to the code that reads it, with a committed `.env.example`, and use generic paths in usage examples. `finance/desmistificando-fii/.env` has `RELATORIOS_DIR`; `finance/analises-fiis/.claude/skills/historico-fii-youtube/.env` has `HISTORICO_DIR`.
