@@ -7,7 +7,8 @@ Uso:
 
 Lista vídeos, lives e shorts do canal com o yt-dlp, fica com os que têm o ticker no título,
 descarta os que já aparecem no histórico (pelo ID nos links) e grava um <data>_<id>.txt por
-vídeo novo em --out (cabeçalho com canal, título, data, duração e URL, depois o texto da legenda).
+vídeo novo em --out (cabeçalho com canal, título, data, duração e URL, depois o texto da legenda),
+mais o <data>_<id>.vtt original, com os horários de cada trecho.
 O histórico padrão é <HISTORICO_DIR>/<canal>/<BASE>.md, com HISTORICO_DIR do .env ao lado deste
 script e BASE o ticker sem o sufixo numérico (JSRE11 → JSRE.md). Imprime um JSON com os vídeos
 novos, do mais antigo para o mais novo. --canais lista os canais conhecidos.
@@ -69,9 +70,10 @@ def baixar_transcricao(video_id, pasta):
     )
     data, duracao, titulo = (r.stdout.strip().splitlines() or ["\t\t"])[-1].split("\t", 2)
     legendas = sorted(pasta.glob(f"{video_id}.pt-orig.vtt")) or sorted(pasta.glob(f"{video_id}.pt*.vtt"))
-    texto = vtt_para_texto(legendas[0].read_text(encoding="utf-8")) if legendas else ""
+    vtt = legendas[0].read_text(encoding="utf-8") if legendas else ""
+    texto = vtt_para_texto(vtt)
     return {"id": video_id, "url": url, "titulo": titulo, "data": data,
-            "duracao": duracao, "tem_legenda": bool(texto), "texto": texto}
+            "duracao": duracao, "tem_legenda": bool(texto), "texto": texto, "vtt": vtt}
 
 
 def main():
@@ -113,7 +115,11 @@ def main():
                 f"Duração: {v['duracao']}\nURL: {v['url']}\n\n{v['texto']}\n",
                 encoding="utf-8",
             )
-            novos.append({k: x for k, x in v.items() if k != "texto"} | {"arquivo": str(arquivo)})
+            legenda = arquivo.with_suffix(".vtt")
+            if v["vtt"]:
+                legenda.write_text(v["vtt"], encoding="utf-8")
+            novos.append({k: x for k, x in v.items() if k not in ("texto", "vtt")}
+                         | {"arquivo": str(arquivo), "legenda": str(legenda) if v["vtt"] else None})
 
     novos.sort(key=lambda v: v["data"])
     print(json.dumps({"canal": nome_canal, "historico": str(historico), "existe": historico.exists(),

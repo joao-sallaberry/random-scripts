@@ -38,7 +38,10 @@ Se o script reclamar que falta `HISTORICO_DIR`, peça ao usuário para criar o `
 3. **Ler cada transcrição por inteiro.** São legendas automáticas, e nomes próprios vêm truncados.
    - Antes de ler, carregue `${CLAUDE_SKILL_DIR}/glossario.md`, que vale para todos os canais, e aplique as correções conhecidas.
    - Liste os trechos relevantes que continuarem duvidosos: tickers, nomes de imóveis, gestoras, regiões, números ou frases cujo sentido muda a análise.
-   - **Pergunte ao usuário com AskUserQuestion antes de escrever o histórico.** Faça até 4 perguntas por chamada, cada uma com o trecho original entre aspas, o canal, a data do vídeo e suas melhores hipóteses como opções.
+   - **Pergunte ao usuário antes de escrever o histórico.**
+     - Para cada dúvida, ache o horário do trecho no `.vtt` do vídeo (campo `legenda` do JSON), por exemplo com `grep -i -B3 '<termo>' <legenda> | grep -oE '^[0-9:.]+ -->' | head -1`.
+     - Primeiro mostre, em texto, a lista de dúvidas. Cada item leva o trecho original entre aspas, o canal, a data do vídeo e o link já no horário, `https://www.youtube.com/watch?v=<id>&t=<segundos>s`, recuado ~5 s, para o usuário poder ouvir.
+     - Depois pergunte com AskUserQuestion, com até 4 perguntas por chamada e suas melhores hipóteses como opções. Repita os links na pergunta.
    - Termos irrelevantes para a análise não precisam de pergunta: omita-os.
    - Toda correção confirmada vai para o glossário, marcada como (confirmado).
    - Nunca invente ticker. Se o usuário não souber, mantenha o texto vago.

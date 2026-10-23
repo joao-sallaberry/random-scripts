@@ -12,6 +12,13 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "SAR 11", "Sani11", "S 11" → SARE11 (fundo do Santander)
 - "KNR11" → KNRI11 (Kinea)
 - "rbrp11" → RBRP11
+- "prsv", "prcv" → PRSV11 (confirmado; o autor do Liberdade é Logo Ali o chamou de "Rio Bravo Renda Corporativa", provavelmente por engano)
+- "jscr", "JSCSR" (fundo de CRI do Safra) → JSCR11 (confirmado)
+- "edga", "Edgar", "edig" → EDGA11
+- "JSRR", "JSRA", "JRI", "JCRI", "JSRI" → JSRI11 (JS Renda Imobiliária, fundo master do Safra)
+- "Core 11" → KORE11
+- "hgre" → HGRE11
+- "BRCE" → BRCR11
 - "Vex" (fundo residencial) → Vectis, VCRR11 (confirmado)
 
 ## Lugares e imóveis
@@ -22,6 +29,16 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "WTNU", "Torre Nações Unidas" → WTorre Nações Unidas (confirmado)
 - "Sequoia Bela Cintra" → Work Bela Cintra (ex-SARE11) (confirmado)
 - "W tem Morumbi" → WT Morumbi
+- "Torre elbon", "ebon", "ebone", "alboni" → Torre Ebony (Rochaverá)
+- "Torre Marble" → Torre Marble (Rochaverá)
+
+## Empresas (inquilinos)
+- "Bridget Stone", "Bridge Stone" → Bridgestone
+- "docin", "docsy" → DocuSign
+- "Sei os Force", "Sales Force" → Salesforce
+- "Aliens", "aliance" → Allianz
+- "Claud Walk", "Cloud walk" → CloudWalk
+- "liva nova" → LivaNova
 
 ## Termos
 - "setipado", "CT pago", "fundo cipado" → fundo cetipado (não listado em bolsa, registrado na Cetip/B3 balcão)
