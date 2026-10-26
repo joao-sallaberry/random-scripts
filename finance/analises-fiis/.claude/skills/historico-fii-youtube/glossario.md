@@ -19,7 +19,38 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "Core 11" → KORE11
 - "hgre" → HGRE11
 - "BRCE" → BRCR11
+- "TXF11", "TESA11", "TESE11", "TETF 11", "TEOF11", "testes F11", "teste Z F" (fundo da emissão de R$ 5 bi) → TRXF11 (confirmado)
+- "Helg", "Helg 11", "REGL11", "REHG11", "RECR11", "HELG11", "Helbor 11", "fundo de logística da REC" → RELG11
+- "Sundística", "Sun Logística", "Sul Logística", "SNHLJ", "sono logística" → SNLG11
+- "Alzirão", "auxilão", "Ausirau", "a11" → ALZR11
+- "GG RC11", "GRC11", "XGRC", "GRRC", "JRC", "TGRC", "GGC" → GGRC11
+- "HSLG", "HSI" (fundo de logística) → HSLG11
+- "zav 11", "Av 11", "zv 11" → ZAVI11 (confirmado)
+- "VVRI 11" → VVRI11 (confirmado)
+- "snf" (FoF da Suno) → SNFF11
+- "AURB", "Aurb 11" → AURB11 (fundo da Alianza)
+- "Core 11", "Core" → KORE11
 - "Vex" (fundo residencial) → Vectis, VCRR11 (confirmado)
+- "XP mol", "XP Mouse", "XML", "spml" → XPML11 (XP Malls)
+- "CPHs", "CPSH" (fundo de shoppings da Capitânia) → CPSH11
+- "abcp" (fundo do Grand Plaza Shopping) → ABCP11
+- "BBIG", "Bebig" (BB Premium Malls) → BBIG11
+- "JCC J11" (fundo cujas cotas pagaram a venda de 30% de um shopping da JHSF ao XPML11) → JCCJ11 (confirmado)
+- "Internacional FII", "Omnimols" → Omni Malls (ex-Internacional, fundo controlado pelo XPML11); "Neomol", "Enomal" → Neo Mall
+
+## Shoppings
+- "shopping encerrado" → Shopping Cerrado (Goiânia; conferido entre os dois canais)
+- "JJ shopping", "Judi shopping", "Xun shopping" → Jundiaí Shopping (Multiplan; conferido entre os dois canais)
+- "Partagana" → Partage Santana (confirmado)
+- "Patianópolis", "Pat Gianópolis", "Paranópolis", "Padianópolis" → Pátio Higienópolis
+- "TT Plaza", "Tiet Plaza", "GT Plaza" → Tietê Plaza Shopping
+- "grande plaza", "Gran Plaza" → Grand Plaza Shopping (Santo André)
+- "praia Belas", "Praias Belas", "Praia As Belas" → Praia de Belas Shopping (Porto Alegre)
+- "Metró Tatuapé", "Metrou Boulevar", "Metró Boulevar Tratapé" → Shopping Metrô Tatuapé e Metrô Boulevard Tatuapé
+- "Guatemi Bosque" → Iguatemi Bosque (Fortaleza)
+- "shops fia Lima", "Far Lima shops", "FL shops", "Shop Realismo" → Shops Faria Lima / FL Shops (JHSF)
+- "Sobradão Plaza" → São Bernardo Plaza Shopping (Allos)
+- "Beraba Shopping" (quando fala do portfólio do XPML11) → Uberlândia Shopping
 
 ## Lugares e imóveis
 - "Chukidan", "Chuk Zaidan", "Chusa Zaidan", "shidan", "Zaidan" → Chucri Zaidan
@@ -31,6 +62,27 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "W tem Morumbi" → WT Morumbi
 - "Torre elbon", "ebon", "ebone", "alboni" → Torre Ebony (Rochaverá)
 - "Torre Marble" → Torre Marble (Rochaverá)
+- "fundo Triple Way", "triplo A", "Triplea" → fundo Triple A (veículo com os imóveis do BLMG11, comprado pelo GGRC11)
+
+## Gestoras
+- "Azagos", "as águas", "Prazagos", "Ágora", "Zagos" → Zagros (gestora do GGRC11)
+- "Blue Macau", "Blumacal" → Blue Macaw
+- "alus", "alos" → Allos
+- "SN", "SYN", "sny", "se yn" → Syn (vendedora do portfólio comprado pelo XPML11 em 2024)
+- "Risa" → Riza
+- "Leandro Busquet" → Leandro Bousquet (CEO da XP Asset desde ago/2025)
+- "Bruno Margato", "Augusto Martins" (gestores originais do HGRU11/CSHG): grafias corretas (confirmado)
+- "Rodrigo Abude" (sucessor no tijolo da Pátria) → Rodrigo Abbud (confirmado)
+- "op Pátria", "Patera", "pátria" → Pátria Investimentos (comprou a CSHG em 2024)
+
+## Renda urbana (HGRU11)
+- "HG ru", "HGU", "HGRI", "HG Rio", "hg1", "HGR1", "G Gru" → HGRU11
+- "svj", "spvj", "spjv", "SP VJ 111" → SPVJ11; "mint", "min 11" → MINT11; "FCFL", "FCF" → FCFL11
+- "macro", "CR em macro" → Makro (atacadista; CRI e indenização)
+- "Dutra 7", "Dultra 107", "Ultra 107", "Passeio do Ultra", "passeio dutra" → Dutra 107 / Passeio Dutra (Taubaté)
+- "Santo Santo Alberto" (imóvel educacional na Rua Quatá, locado ao Insper) → Edifício Santo Alberto
+- "embi Morumbi", "A em B Morumbi" → Anhembi Morumbi (Paulista 2000)
+- "açaí", "asai", "sair" (rede) → Assaí
 
 ## Empresas (inquilinos)
 - "Bridget Stone", "Bridge Stone" → Bridgestone
@@ -39,6 +91,12 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "Aliens", "aliance" → Allianz
 - "Claud Walk", "Cloud walk" → CloudWalk
 - "liva nova" → LivaNova
+- "covolã", "volan", "Covolam" → Covolan
+- "Copobrá", "Copa Bras" → Copobras
+- "aptive" → Aptiv
+- "tdmo", "Todimo" → Todimo (CD em Cuiabá)
+- "Sensus Logística", "Cencosud Logística" → Cencosud
+- "Martin Braer", "Martin Bower" → Martin Brower
 
 ## Termos
 - "setipado", "CT pago", "fundo cipado" → fundo cetipado (não listado em bolsa, registrado na Cetip/B3 balcão)
