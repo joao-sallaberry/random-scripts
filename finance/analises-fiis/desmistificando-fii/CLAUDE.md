@@ -16,7 +16,7 @@ Pipeline for the DesmistificandoFII weekly REIT report: browser-saved HTML → a
   - `TICKERS` maps tickers to spoken forms, and unknown tickers are spelled out via `LETRAS`, including a class suffix like `FIIP11B`.
   - `SIGLAS` covers acronyms and abbreviations; `INGLES` respells English words.
   - Test with `python3 speech.py "frase"`.
-- The `resumo-fii` skill (`.claude/skills/resumo-fii/`) summarizes a fund's recent analyses from the archived `.md` files. Its `buscar.py` reads the index's "Por fundo" entries and the `## NN. Title` sections, so keep it in sync with that format.
+- The `resumo-fii` skill lives in the parent folder (`analises-fiis/.claude/skills/resumo-fii/`, run Claude from `analises-fiis/`). It summarizes a fund's recent analyses from the archived `.md` files, the main source, plus the `historico-fii-youtube` histories. Its `buscar.py` reads the index's "Por fundo" entries and the `## NN. Title` sections, so keep it in sync with that format. It loads this folder's `config.py` by path.
 - If `edge-tts` fails with 403, upgrade it with `uv tool upgrade edge-tts`.
 
 - `README.md` (pt-BR) introduces the folder's tools and teaches how to use them. When a user-facing feature or option changes, update it too. Keep internal decisions and maintenance details (parsing rules, pronunciation dictionaries, regression checks) here, not there.

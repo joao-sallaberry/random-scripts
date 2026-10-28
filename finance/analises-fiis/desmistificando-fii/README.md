@@ -5,7 +5,7 @@ Scripts para arquivar e ouvir o Relatório Semanal de FIIs do DesmistificandoFII
 1. Você salva a página do relatório pelo navegador.
 2. O `arquivar.py` transforma a página num Markdown com as imagens e mantém um índice de todas as edições.
 3. O `to_audio.py` gera o áudio, em `.m4b` com capítulos ou um MP3 por seção.
-4. A skill `resumo-fii` do Claude Code resume o que os relatórios dizem de um fundo.
+4. A skill `resumo-fii` do Claude Code, na pasta `analises-fiis/` acima desta, resume o que os relatórios dizem de um fundo, complementado pelos históricos dos canais do YouTube.
 
 Os scripts usam só a biblioteca padrão do Python. Os relatórios são conteúdo de assinante e ficam fora do repositório.
 
@@ -86,7 +86,7 @@ python3 to_audio.py relatorio.md --motor piper --voz pt_BR-cadu-medium
 
 ## 5. Resumir as análises de um fundo
 
-Com o Claude Code aberto nesta pasta:
+Com o Claude Code aberto na pasta `finance/analises-fiis/` (a pasta acima desta):
 
 ```
 /resumo-fii GGRC11
@@ -94,17 +94,18 @@ Com o Claude Code aberto nesta pasta:
 /resumo-fii BTLG11 --desde 2025-01-01
 ```
 
-Também funciona pedindo em texto, como "qual a análise recente do RBHG11?". O resumo usa só os relatórios arquivados e traz:
+Também funciona pedindo em texto, como "qual a análise recente do RBHG11?". O resumo se baseia nos relatórios arquivados e traz:
 - a recomendação atual e se o fundo está na Carteira Recomendada;
 - o rendimento recorrente, o lucro e a distribuição por cota, com a edição de onde saiu cada número;
 - a alavancagem;
-- aquisições, vendas, emissões e outros eventos, as mudanças de recomendação e a conclusão do analista.
+- aquisições, vendas, emissões e outros eventos, as mudanças de recomendação e a conclusão do analista;
+- no fim, o que dizem os canais do YouTube que têm histórico do fundo (feitos pela skill `historico-fii-youtube`): o sentimento de cada canal e se concordam com o relatório. Quando os números divergem, vale o relatório.
 
-Por padrão, olha as 8 edições mais recentes com seção sobre o fundo, mais as menções a ele em outras seções.
+Por padrão, olha as 8 edições mais recentes com seção sobre o fundo, mais as menções a ele em outras seções, e os vídeos do mesmo período. Para os vídeos, o `HISTORICO_DIR` precisa estar no `.env` da skill `historico-fii-youtube`.
 
 Para ver o material bruto sem o Claude:
 
 ```sh
-python3 .claude/skills/resumo-fii/buscar.py GGRC11 --ultimas 3
-python3 .claude/skills/resumo-fii/buscar.py GGRC11 --desde 2026-01-01 --sem-mencoes
+python3 ../.claude/skills/resumo-fii/buscar.py GGRC11 --ultimas 3
+python3 ../.claude/skills/resumo-fii/buscar.py GGRC11 --desde 2026-01-01 --sem-mencoes --sem-youtube
 ```
