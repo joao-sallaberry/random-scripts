@@ -6,6 +6,9 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "Fatine11", "Fatine 11", "fatien" → FATN11 (confirmado)
 - "JCR11", "JR11", "JSR11", "JSR 111", "JCRE11", "JTC R11", "JCN" → JSRE11
 - "TP11", "TEP 11", "Tep 11" → TEPP11
+- "trbl 111", "TR bl11", "terb 11", "Terbellon", "TERMBEL11", "TRLG11", "DRBL11", "CRBL11", "TRBN1" → TRBL11
+- "SG1", "ISD11", "SDL11", "isdal 11", "SD11" → SDIL11, antigo ticker do TRBL11 (confirmado)
+- "fundabresco" → fundo da Bresco (BRCO11)
 - "PVB1", "PVB 11", "pvb 11", "PVB em 11" → PVBI11
 - "dgpo 111", "hgp 111" → HGPO11
 - "JSAF", "JSAF11", "J saf 11" → JSAF11 (FoF do Safra)
@@ -53,6 +56,10 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "Beraba Shopping" (quando fala do portfólio do XPML11) → Uberlândia Shopping
 
 ## Lugares e imóveis
+- "Duca de Caxias", "Lucas de Caxias", "duc Duque de Caxias" → Duque de Caxias (imóvel vendido pelo TRBL11)
+- "J log", "grog", "Grulog", "GR log" (TRBL11) → GRU LOG
+- "multimodal Pat BRF" (venda do TRBL11) → Multimodal Duque de Caxias e galpão BRF (confirmado)
+- "R9,44" (aluguel dos Correios no galpão da Bresco em Contagem) → R$ 39,44/m² (confirmado)
 - "Chukidan", "Chuk Zaidan", "Chusa Zaidan", "shidan", "Zaidan" → Chucri Zaidan
 - "Berrine", "berina" → Berrini
 - "Rocha Verá", "Rocha Vera" → Rochaverá
@@ -65,6 +72,8 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "fundo Triple Way", "triplo A", "Triplea" → fundo Triple A (veículo com os imóveis do BLMG11, comprado pelo GGRC11)
 
 ## Gestoras
+- "Telos", "Telus", "Tesla Rio Bravo", "Telos Rio Bravo" → Tellus (cogestora do TRBL11 com a Rio Bravo); "rolo bravo" é apelido do autor para a Rio Bravo
+- "consult" (garantia das obras do galpão de Contagem do TRBL11) → construtora (confirmado)
 - "Azagos", "as águas", "Prazagos", "Ágora", "Zagos" → Zagros (gestora do GGRC11)
 - "Blue Macau", "Blumacal" → Blue Macaw
 - "alus", "alos" → Allos
@@ -85,6 +94,13 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "açaí", "asai", "sair" (rede) → Assaí
 
 ## Empresas (inquilinos)
+- "brasken", "Brasquen", "Brasquem", "Basquen" → Braskem
+- "Chope", "Shope" → Shopee
+- "Share Williams" → Sherwin-Williams
+- "Cromos", "Cronos", "Cromus" (inquilino pequeno do TRBL11) → Cromos (confirmado)
+- "futuras tintas" → Futura Tintas
+- "alma viva", "uma viva" → Almaviva
+- "Shopify" (TRBL11, galpão de Contagem) → Shopee
 - "Bridget Stone", "Bridge Stone" → Bridgestone
 - "docin", "docsy" → DocuSign
 - "Sei os Force", "Sales Force" → Salesforce
@@ -99,6 +115,7 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "Martin Braer", "Martin Bower" → Martin Brower
 
 ## Termos
+- "Barone", "Barão" (live com a gestão do TRBL11) → Professor Baroni
 - "setipado", "CT pago", "fundo cipado" → fundo cetipado (não listado em bolsa, registrado na Cetip/B3 balcão)
 - "corta subordinada", "cote subordinada" → cota subordinada
 - "RMG" → renda mínima garantida
