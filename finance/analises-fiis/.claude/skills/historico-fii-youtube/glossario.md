@@ -40,6 +40,15 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "BBIG", "Bebig" (BB Premium Malls) → BBIG11
 - "JCC J11" (fundo cujas cotas pagaram a venda de 30% de um shopping da JHSF ao XPML11) → JCCJ11 (confirmado)
 - "Internacional FII", "Omnimols" → Omni Malls (ex-Internacional, fundo controlado pelo XPML11); "Neomol", "Enomal" → Neo Mall
+- "XMLL" → XPML11 (confirmado)
+- "PMLL" (fundo de shopping) → PMLL11 (confirmado)
+- "CLI", "Clean", "Klin" (fundo de recebíveis) → CLIN11 (confirmado)
+- "Irin", "Iriri", "IRIM" → IRIM11 (confirmado)
+- "Krie" (fundo de recebíveis) → ICRI11 (confirmado)
+- "CANU" (fundo de CDI com spread) → KNUQ11 (confirmado)
+- "MFI" (fundo a evitar, junto com o TGAR11) → MFII11 (confirmado)
+- "TGAR" → TGAR11 (confirmado)
+- "HIV", "RIV" (FoF multiestratégia) → RINV11 (confirmado)
 
 ## Shoppings
 - "shopping encerrado" → Shopping Cerrado (Goiânia; conferido entre os dois canais)
@@ -76,7 +85,9 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "consult" (garantia das obras do galpão de Contagem do TRBL11) → construtora (confirmado)
 - "Azagos", "as águas", "Prazagos", "Ágora", "Zagos" → Zagros (gestora do GGRC11)
 - "Blue Macau", "Blumacal" → Blue Macaw
-- "alus", "alos" → Allos
+- "alus", "alos", "agos" → Allos (ALOS3)
+- "Raízen" (gestora do RINV11) → Real Investor (confirmado)
+- "Araújo Fontes" → Araújo Fontes, gestora do AFHI11 (confirmado)
 - "SN", "SYN", "sny", "se yn" → Syn (vendedora do portfólio comprado pelo XPML11 em 2024)
 - "Risa" → Riza
 - "Leandro Busquet" → Leandro Bousquet (CEO da XP Asset desde ago/2025)
@@ -113,6 +124,13 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "tdmo", "Todimo" → Todimo (CD em Cuiabá)
 - "Sensus Logística", "Cencosud Logística" → Cencosud
 - "Martin Braer", "Martin Bower" → Martin Brower
+
+## Empresas (ações)
+- "Kint komma Brás" → Petrobras quando fala de receita em dólar; Intelbras quando fala de sistemas de segurança (confirmado)
+- "PLL" (construtora, junto com a MRV) → Plano & Plano, PLPL3 (confirmado)
+- "Asa" (venda da Farm) → Azzas, AZZA3 (confirmado)
+- "Moradia" (construtora do Nordeste) → Moura Dubeux (confirmado)
+- "Duque", "Iducs" → Yduqs (confirmado); "Vitro" → Vitru
 
 ## Termos
 - "Barone", "Barão" (live com a gestão do TRBL11) → Professor Baroni
