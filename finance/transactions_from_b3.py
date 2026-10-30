@@ -1,15 +1,22 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "openpyxl==3.1.5",
+#     "pandas==2.3.3",
+# ]
+# ///
 
 """
 Extract and convert B3 transaction data from Excel to CSV format.
 Reads B3 transaction Excel files and outputs a simplified CSV with key columns.
 
 Usage:
-    python transactions_from_b3.py <input_xlsx> [output_csv]
+    uv run transactions_from_b3.py <input_xlsx> [output_csv]
     
 Example:
-    python transactions_from_b3.py negociacao-2025-12-23-16-16-18.xlsx
-    python transactions_from_b3.py negociacao-2025-12-23-16-16-18.xlsx transactions.csv
+    uv run transactions_from_b3.py negociacao-2025-12-23-16-16-18.xlsx
+    uv run transactions_from_b3.py negociacao-2025-12-23-16-16-18.xlsx transactions.csv
 """
 
 import sys

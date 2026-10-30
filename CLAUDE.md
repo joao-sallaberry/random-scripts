@@ -17,14 +17,9 @@ There is no build system, test suite, or linter configured.
 
 ## Setup and running
 
-```sh
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python <script>.py <args>
-```
+There is no shared virtualenv or `requirements.txt`. Most scripts use only the standard library and run with `python3 <dir>/<script>.py <args>`. Scripts that need third-party packages (`transactions_from_b3.py`) declare them in a PEP 723 `# /// script` block under a `#!/usr/bin/env -S uv run --script` shebang, and run with `uv run <dir>/<script>.py <args>`. A new third-party dependency goes in that script's block, never in a global file.
 
-Multimedia scripts import `from util import ...`, so run them from inside `multimedia/` (or with `multimedia/` on `PYTHONPATH`) — e.g. `cd multimedia && python compress_video.py /path/to/videos`.
+Multimedia scripts import `from util import ...`; this works from any directory, since Python puts the script's own directory on `sys.path`.
 
 ## Conventions
 
