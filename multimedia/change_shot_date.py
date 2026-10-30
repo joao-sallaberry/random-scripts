@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 
 """
-Adjust creation dates of videos and photos in a directory.
+Adjust creation dates of videos and photos in a directory, or of a single file.
 Supports three modes: offset mode (adjust by time delta), exact date mode (set specific date),
 or from-filename mode (parse date from the filename).
 Uses ffmpeg for videos and exiftool for photos.
+Updated files are saved in an "updated" folder inside the directory (or next to the file).
 
 Usage Examples:
     Offset mode (adjust dates by time delta):
         python change_shot_date.py /path/to/media --days 2 --hours 3 --minutes 30
         python change_shot_date.py /path/to/media --days -5 --hours -2
+        python change_shot_date.py /path/to/media/IMG_0001.jpg --hours -3
     
     Exact date mode (set all files to specific date):
         python change_shot_date.py /path/to/media --set-date 2024-03-15T14:30:00 --timezone America/Sao_Paulo
@@ -46,13 +48,14 @@ def setup_argument_parser():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
-        'directory',
+        'path',
         type=str,
-        help='Directory containing the media files'
+        help='Media file, or directory containing the media files'
     )
     
     # Create mutually exclusive group for modes
-    mode_group = parser.add_mutually_exclusive_group(required=True)
+    # (not required: without --set-date or --from-filename, offset mode is used)
+    mode_group = parser.add_mutually_exclusive_group()
     mode_group.add_argument(
         '--set-date',
         type=str,
@@ -159,7 +162,7 @@ def validate_arguments(args):
         args: Parsed arguments from argparse
         
     Returns:
-        tuple: (mode: str, exact_date: datetime or None, input_dir: Path, timezone: ZoneInfo or None)
+        tuple: (mode: str, exact_date: datetime or None, input_path: Path, timezone: ZoneInfo or None)
                mode is one of: 'exact', 'offset', 'from_filename'
         
     Raises:
@@ -169,6 +172,10 @@ def validate_arguments(args):
     use_from_filename = args.from_filename
     use_offset = args.days != 0 or args.hours != 0 or args.minutes != 0
     
+    if not (use_exact_date or use_from_filename or use_offset):
+        print("Error: Specify --set-date, --from-filename, or an offset (--days, --hours, --minutes)")
+        sys.exit(1)
+
     # Validate that offset params are not mixed with from-filename
     if use_from_filename and use_offset:
         print("Error: Cannot use --from-filename together with offset parameters (--days, --hours, --minutes)")
@@ -204,15 +211,15 @@ def validate_arguments(args):
             print(f"Error: {e}")
             sys.exit(1)
     
-    # Validate directory
-    input_dir = Path(args.directory)
-    
-    if not input_dir.exists():
-        print(f"Error: Directory not found: {input_dir}")
+    # Validate path (file or directory)
+    input_path = Path(args.path)
+
+    if not input_path.exists():
+        print(f"Error: Path not found: {input_path}")
         sys.exit(1)
-    
-    if not input_dir.is_dir():
-        print(f"Error: The provided path is not a directory: {input_dir}")
+
+    if not (input_path.is_dir() or input_path.is_file()):
+        print(f"Error: The provided path is not a file or directory: {input_path}")
         sys.exit(1)
     
     if use_exact_date:
@@ -222,7 +229,7 @@ def validate_arguments(args):
     else:
         mode = 'offset'
     
-    return mode, exact_date, input_dir, timezone
+    return mode, exact_date, input_path, timezone
 
 
 def process_video(input_video, output_video, mode, exact_date, args, timezone=None):
@@ -380,7 +387,7 @@ def main():
     # Parse and validate arguments
     parser = setup_argument_parser()
     args = parser.parse_args()
-    mode, exact_date, input_dir, timezone = validate_arguments(args)
+    mode, exact_date, input_path, timezone = validate_arguments(args)
     
     # Check if exiftool is available
     exiftool_available = shutil.which("exiftool") is not None
@@ -388,17 +395,27 @@ def main():
         print("⚠️  exiftool not found. Photos will not be processed.")
         print("   Install with: \"sudo apt install exiftool\" or \"brew install exiftool\"")
     
-    # Find all files in the directory
+    # Find the media files (the given file, or all files in the directory)
+    if input_path.is_file():
+        input_dir = input_path.parent
+        candidates = [input_path]
+    else:
+        input_dir = input_path
+        candidates = input_dir.iterdir()
+
     media_files = []
-    for f in input_dir.iterdir():
+    for f in candidates:
         if f.is_file():
             if f.suffix.lower() in VIDEO_EXTENSIONS:
                 media_files.append(('video', f))
             elif f.suffix.lower() in PHOTO_EXTENSIONS and exiftool_available:
                 media_files.append(('photo', f))
-    
+
     if not media_files:
-        print("No media files found in the directory")
+        if input_path.is_file():
+            print(f"Not a supported media file: {input_path}")
+        else:
+            print("No media files found in the directory")
         sys.exit(1)
     
     video_count = sum(1 for t, _ in media_files if t == 'video')
