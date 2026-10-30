@@ -1,4 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "prompt_toolkit==3.0.53",
+# ]
+# ///
 
 """
 Adjust creation dates of videos and photos in a directory, or of a single file.
@@ -9,16 +15,20 @@ Updated files are saved in an "updated" folder inside the directory (or next to 
 
 Usage Examples:
     Offset mode (adjust dates by time delta):
-        python change_shot_date.py /path/to/media --days 2 --hours 3 --minutes 30
-        python change_shot_date.py /path/to/media --days -5 --hours -2
-        python change_shot_date.py /path/to/media/IMG_0001.jpg --hours -3
+        uv run change_shot_date.py /path/to/media --days 2 --hours 3 --minutes 30
+        uv run change_shot_date.py /path/to/media --days -5 --hours -2
+        uv run change_shot_date.py /path/to/media/IMG_0001.jpg --hours -3
     
     Exact date mode (set all files to specific date):
-        python change_shot_date.py /path/to/media --set-date 2024-03-15T14:30:00 --timezone America/Sao_Paulo
-        python change_shot_date.py /path/to/media --set-date "2024-03-15 14:30:00" --timezone UTC
+        uv run change_shot_date.py /path/to/media --set-date 2024-03-15T14:30:00 --timezone America/Sao_Paulo
+        uv run change_shot_date.py /path/to/media --set-date "2024-03-15 14:30:00" --timezone UTC
     
     From-filename mode (parse date from filename, e.g. "France 2014-03-07 23.09.18.mp4"):
-        python change_shot_date.py /path/to/media --from-filename --timezone Europe/Paris
+        uv run change_shot_date.py /path/to/media --from-filename --timezone Europe/Paris
+
+    Without --timezone, exact date and from-filename modes ask for it interactively,
+    with a dropdown of timezones that filters as you type (requires prompt_toolkit):
+        uv run change_shot_date.py /path/to/media --from-filename
 """
 
 import subprocess
@@ -28,7 +38,7 @@ import re
 from pathlib import Path
 import shutil
 import argparse
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, available_timezones
 from util import VIDEO_EXTENSIONS, PHOTO_EXTENSIONS
 
 
@@ -73,7 +83,7 @@ def setup_argument_parser():
         '--timezone',
         type=str,
         metavar='TZ',
-        help='Timezone for the date (e.g., America/Sao_Paulo, UTC, Europe/Paris). Required with --set-date and --from-filename.'
+        help='Timezone for the date (e.g., America/Sao_Paulo, UTC, Europe/Paris). Used with --set-date and --from-filename; asked interactively if omitted.'
     )
     
     # Offset parameters
@@ -154,6 +164,51 @@ def parse_iso_date(date_string):
             )
 
 
+def prompt_timezone():
+    """
+    Ask the user for a timezone, with a dropdown of all IANA timezones
+    that filters as they type.
+
+    Returns:
+        str: The chosen timezone name
+
+    Raises:
+        SystemExit: If prompt_toolkit is missing or the user cancels
+    """
+    try:
+        from prompt_toolkit import PromptSession
+        from prompt_toolkit.completion import WordCompleter
+        from prompt_toolkit.validation import Validator
+    except ImportError:
+        print("Error: --timezone not given, and prompt_toolkit is needed to choose it interactively")
+        print("   Run with \"uv run change_shot_date.py ...\" (installs it) or pass --timezone")
+        sys.exit(1)
+
+    timezones = sorted(available_timezones())
+    validator = Validator.from_callable(
+        lambda text: text in timezones,
+        error_message="Unknown timezone — pick one from the list",
+        move_cursor_to_end=True
+    )
+    session = PromptSession(
+        # Case-insensitive substring match on the whole input ("paulo" finds America/Sao_Paulo)
+        completer=WordCompleter(timezones, ignore_case=True, match_middle=True, sentence=True),
+        validator=validator,
+        complete_while_typing=True,
+        validate_while_typing=False
+    )
+
+    try:
+        return session.prompt(
+            "🌍 Timezone: ",
+            # Open the dropdown right away, before anything is typed
+            pre_run=lambda: session.app.current_buffer.start_completion()
+        )
+    except (KeyboardInterrupt, EOFError):
+        print("Cancelled")
+        sys.exit(1)
+
+
 def validate_arguments(args):
     """
     Validate parsed arguments and return configuration.
@@ -181,14 +236,14 @@ def validate_arguments(args):
         print("Error: Cannot use --from-filename together with offset parameters (--days, --hours, --minutes)")
         sys.exit(1)
     
-    # Validate timezone is provided when required
+    # Ask for the timezone interactively when required but not provided
     if (use_exact_date or use_from_filename) and not args.timezone:
-        if use_exact_date:
-            print("Error: --timezone is required when using --set-date")
-        else:
-            print("Error: --timezone is required when using --from-filename")
-        print("Examples: America/Sao_Paulo, UTC, Europe/Paris, America/New_York")
-        sys.exit(1)
+        if not sys.stdin.isatty():
+            flag = "--set-date" if use_exact_date else "--from-filename"
+            print(f"Error: --timezone is required when using {flag}")
+            print("Examples: America/Sao_Paulo, UTC, Europe/Paris, America/New_York")
+            sys.exit(1)
+        args.timezone = prompt_timezone()
     
     # Parse timezone
     timezone = None

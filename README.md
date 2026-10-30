@@ -36,6 +36,7 @@ Scripts with Python dependencies declare them inline ([PEP 723](https://peps.pyt
 
 ```sh
 uv run finance/transactions_from_b3.py negociacao.xlsx
+uv run multimedia/change_shot_date.py /path/to/media --from-filename
 ```
 
 They are also executable directly (`./finance/transactions_from_b3.py ...`).

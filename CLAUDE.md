@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A collection of standalone personal Python CLI scripts, grouped by domain:
 
-- `multimedia/` — batch operations over a directory of photos/videos (compress, fix shot dates, set GPS, extract RAW previews, isolate files without EXIF dates). They shell out to external tools rather than using Python libraries: `ffmpeg`/`ffprobe` for videos, `exiftool` for metadata, `dcraw` for RAW files, and `notify-send` for desktop notifications.
+- `multimedia/` — batch operations over a directory of photos/videos (compress, fix shot dates, set GPS, extract RAW previews, isolate files without EXIF dates). They shell out to external tools rather than using Python libraries: `ffmpeg`/`ffprobe` for videos, `exiftool` for metadata, `dcraw` for RAW files, and `notify-send` for desktop notifications. The exception is `change_shot_date.py`, which lazily imports `prompt_toolkit` for its interactive timezone picker (only when `--timezone` is omitted).
 - `finance/` — B3 (Brazilian stock exchange) data processing with pandas/openpyxl (`transactions_from_b3.py`).
   - `analises-fiis/` — REIT analyses. Run Claude from `finance/analises-fiis/` so its skills (`.claude/skills/`) load.
     - `desmistificando-fii/` — `arquivar.py` + `to_audio.py` (+ `verificar.py`): the DesmistificandoFII weekly REIT report, browser-saved HTML → archived Markdown with images and an index → audio. See `finance/analises-fiis/desmistificando-fii/CLAUDE.md`.
@@ -17,7 +17,7 @@ There is no build system, test suite, or linter configured.
 
 ## Setup and running
 
-There is no shared virtualenv or `requirements.txt`. Most scripts use only the standard library and run with `python3 <dir>/<script>.py <args>`. Scripts that need third-party packages (`transactions_from_b3.py`) declare them in a PEP 723 `# /// script` block under a `#!/usr/bin/env -S uv run --script` shebang, and run with `uv run <dir>/<script>.py <args>`. A new third-party dependency goes in that script's block, never in a global file.
+There is no shared virtualenv or `requirements.txt`. Most scripts use only the standard library and run with `python3 <dir>/<script>.py <args>`. Scripts that need third-party packages (`transactions_from_b3.py`, `change_shot_date.py`) declare them in a PEP 723 `# /// script` block under a `#!/usr/bin/env -S uv run --script` shebang, and run with `uv run <dir>/<script>.py <args>`. A new third-party dependency goes in that script's block, never in a global file.
 
 Multimedia scripts import `from util import ...`; this works from any directory, since Python puts the script's own directory on `sys.path`.
 
