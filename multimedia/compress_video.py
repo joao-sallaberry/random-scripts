@@ -8,14 +8,20 @@ customizable CRF quality. Preserves metadata (dates, GPS, camera make/model) and
 file modification time while reducing file size. The equivalent ffmpeg command is
 recorded in the output's "compress_settings" metadata tag.
 
+With --crf-test, encodes only 10s (from --start) at CRF 25, 30 and 35 and stacks them
+with the original in a 2x2 mosaic (original top left; a single row for vertical videos),
+labeled with each CRF and its estimated size relative to the original, to pick a CRF
+before compressing everything.
+
 usage: compress_video.py [-h] [--crf CRF] [--preset PRESET] [--start START] [--end END]
-                         [--overwrite] [--show-settings]
+                         [--overwrite] [--show-settings] [--crf-test]
                          path
 
 Compress videos in a directory using ffmpeg
 
 positional arguments:
-  path             Directory containing the videos (or a single video with --show-settings)
+  path             Directory containing the videos (or a single video with --show-settings
+                   or --crf-test)
 
 options:
   -h, --help       show this help message and exit
@@ -25,10 +31,13 @@ options:
   --end END        End time to cut to (e.g. 02:45 or 165)
   --overwrite      Re-encode videos whose output already exists
   --show-settings  Only print the compress_settings tag of already compressed videos
+  --crf-test       Encode 10s (from --start) at CRF 25, 30, 35 and stack them with the
+                   original in a 2x2 mosaic (a row for vertical videos)
 
 examples:
   compress_video.py --crf 20 --preset slow /path/to/videos
   compress_video.py --show-settings /path/to/videos/ff20-slow
+  compress_video.py --crf-test --start 01:30 /path/to/videos/IMG_1234.MOV
 """
 
 import subprocess
@@ -37,15 +46,23 @@ import argparse
 import os
 import shlex
 import shutil
+import tempfile
 import time
 from pathlib import Path
-from util import VIDEO_EXTENSIONS
+from util import VIDEO_EXTENSIONS, parse_time
 
 # Default values
 DEFAULT_CRF = 23
 DEFAULT_PRESET = "slow"
 AUDIO_BITRATE_PER_CHANNEL_K = 80  # 160k for stereo
 COMMAND_METADATA_KEY = "compress_settings"
+
+# --crf-test: one tile for the original and one for each CRF
+CRF_TEST_VALUES = [25, 30, 35]
+CRF_TEST_DURATION = 10
+# Each tile keeps the original resolution up to this size on its short side, so
+# 4K sources don't produce an 8K mosaic
+CRF_TEST_MAX_TILE_SIZE = 1080
 
 # Metadata copied from the original with exiftool. Track header tags (e.g. Rotation)
 # are deliberately left out: ffmpeg already applies the rotation when re-encoding,
@@ -106,9 +123,15 @@ def setup_argument_parser():
         help=f'Only print the {COMMAND_METADATA_KEY} tag of already compressed videos'
     )
     parser.add_argument(
+        '--crf-test',
+        action='store_true',
+        help=f'Encode {CRF_TEST_DURATION}s (from --start) at CRF '
+             f'{", ".join(map(str, CRF_TEST_VALUES))} and stack them with the original in a 2x2 mosaic (a row for vertical videos)'
+    )
+    parser.add_argument(
         'path',
         type=str,
-        help='Directory containing the videos (or a single video with --show-settings)'
+        help='Directory containing the videos (or a single video with --show-settings or --crf-test)'
     )
 
     return parser
@@ -346,6 +369,195 @@ def show_settings(path):
         print()
 
 
+def probe_duration(video_file):
+    """
+    Get the duration of a video in seconds with ffprobe.
+
+    Returns:
+        float: Duration, or None if unknown
+    """
+    cmd = [
+        "ffprobe",
+        "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        str(video_file)
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        return float(result.stdout.strip())
+    except ValueError:
+        return None
+
+
+def build_mosaic_command(original_file, clips, start, deinterlace, vertical, output_file):
+    """
+    Build the ffmpeg command that stacks the original and the test clips: original
+    first, then the clips left to right, top to bottom. Horizontal videos go in a
+    2x2 grid, vertical ones side by side in a single row.
+
+    Args:
+        original_file: Path to the original video
+        clips: List of (label, path) for the encoded clips, in order
+        start: Start time of the clips in the original, in seconds
+        deinterlace: Deinterlace filter applied to the clips, also applied to the original
+        vertical: Whether the video is taller than wide (after rotation)
+        output_file: Path to the mosaic
+
+    Returns:
+        list: Command as list of strings for subprocess
+    """
+    cmd = ["ffmpeg", "-ss", str(start), "-t", str(CRF_TEST_DURATION), "-i", str(original_file)]
+    for _, clip in clips:
+        cmd.extend(["-i", str(clip)])
+
+    labels = ["Original"] + [label for label, _ in clips]
+    if vertical:
+        scale = f"scale='min(iw,{CRF_TEST_MAX_TILE_SIZE})':-2"
+        layout = "0_0|w0_0|w0+w1_0|w0+w1+w2_0"
+    else:
+        scale = f"scale=-2:'min(ih,{CRF_TEST_MAX_TILE_SIZE})'"
+        layout = "0_0|w0_0|0_h0|w0_h0"
+
+    graph = ""
+    for i, label in enumerate(labels):
+        pre = f"{deinterlace}," if i == 0 and deinterlace else ""
+        graph += (
+            f"[{i}:v]{pre}{scale},format=yuv420p,"
+            f"drawtext=text='{label}':expansion=none:x='min(w,h)/40':y='min(w,h)/40':"
+            f"fontsize='min(w,h)/20':fontcolor=white:box=1:boxcolor=black@0.6:"
+            f"boxborderw='min(w,h)/80'[t{i}];"
+        )
+    graph += "".join(f"[t{i}]" for i in range(len(labels)))
+    graph += f"xstack=inputs={len(labels)}:layout={layout}:shortest=1"
+
+    cmd.extend([
+        "-filter_complex", graph,
+        "-an",
+        # Near-lossless, so the mosaic's own encoding doesn't hide the differences
+        "-c:v", "libx264", "-preset", "fast", "-crf", "10",
+        "-movflags", "+faststart",
+        "-y",
+        str(output_file)
+    ])
+    return cmd
+
+
+def crf_test(video_file, output_file, preset, start):
+    """
+    Encode a short clip of a video at each CRF in CRF_TEST_VALUES, and stack them
+    with the original in a mosaic for visual comparison.
+
+    Raises:
+        subprocess.CalledProcessError: If ffmpeg fails
+    """
+    is_interlaced = is_video_interlaced(video_file)
+    if is_interlaced:
+        print("  ℹ️  Detected interlaced video, applying deinterlace filter")
+    deinterlace = "bwdif=mode=1:parity=auto:deint=interlaced" if is_interlaced else None
+
+    # Bitrate of the original, to estimate the size of each CRF on the whole video
+    original_duration = probe_duration(video_file)
+    original_rate = video_file.stat().st_size / original_duration if original_duration else None
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        clips = []
+        for crf in CRF_TEST_VALUES:
+            clip = Path(temp_dir) / f"crf{crf}.mp4"
+            cmd = build_ffmpeg_command(
+                video_file, clip, crf, preset, is_interlaced,
+                start, start + CRF_TEST_DURATION, build_audio_options(video_file)
+            )
+            timer = ProcessingTimer()
+            timer.start()
+            subprocess.run(cmd, check=True, capture_output=True, text=True)
+
+            label = f"CRF {crf}"
+            clip_duration = probe_duration(clip)
+            if original_rate and clip_duration:
+                ratio = clip.stat().st_size / clip_duration / original_rate * 100
+                label += f" ~{ratio:.0f}%"
+                estimate = f", ~{ratio:.0f}% of the original's size"
+            else:
+                estimate = ""
+            print(f"  CRF {crf} (took {timer.get_elapsed_str()}): "
+                  f"{format_size(clip.stat().st_size)}{estimate}")
+            clips.append((label, clip))
+
+        # The clips are already rotated, unlike the original, which may only have a rotation tag
+        size = probe_stream(clips[0][1], "v:0", "width,height")
+        vertical = int(size.get("height", 0)) > int(size.get("width", 0))
+
+        # Write to a temporary file so an interrupted run never leaves a partial mosaic
+        temp_file = Path(temp_dir) / "mosaic.mp4"
+        subprocess.run(build_mosaic_command(video_file, clips, start, deinterlace, vertical, temp_file),
+                       check=True, capture_output=True, text=True)
+        shutil.move(temp_file, output_file)
+
+
+def run_crf_test(path, args):
+    """
+    Run crf_test on a single video, or on every video in a directory.
+    """
+    if path.is_dir():
+        video_files = sorted(f for f in path.iterdir()
+                             if f.is_file() and f.suffix.lower() in VIDEO_EXTENSIONS)
+        output_dir = path / f"crf-test-{args.preset}"
+    else:
+        video_files = [path]
+        output_dir = path.parent / f"crf-test-{args.preset}"
+
+    if not video_files:
+        print("No video files found in the directory")
+        sys.exit(0)
+
+    try:
+        start = parse_time(args.start) if args.start else 0.0
+    except ValueError:
+        print(f"Error: Invalid start time: {args.start}")
+        sys.exit(1)
+
+    output_dir.mkdir(exist_ok=True)
+    print(f"Testing CRF {', '.join(map(str, CRF_TEST_VALUES))} on {CRF_TEST_DURATION}s "
+          f"from {start:g}s, preset {args.preset}")
+    print(f"Output to: {output_dir}")
+    print()
+
+    success_count = 0
+    skipped_count = 0
+    error_count = 0
+
+    for video_file in video_files:
+        output_file = output_dir / f"{video_file.stem} [crf-test].mp4"
+        if output_file.exists() and not args.overwrite:
+            print(f"→ Skipping (already exists): {output_file.name}")
+            print()
+            skipped_count += 1
+            continue
+
+        print(f"→ Testing: {video_file.name}")
+        try:
+            crf_test(video_file, output_file, args.preset, start)
+            print(f"  ✅ Mosaic: {output_file.name}")
+            success_count += 1
+        except subprocess.CalledProcessError as e:
+            print(f"  ❌ Error: ffmpeg failed with exit code {e.returncode}")
+            if e.stderr:
+                print(f"     {e.stderr.strip()}")
+            error_count += 1
+        print()
+
+    print("="*50)
+    print(f"✅ Mosaics created: {success_count}")
+    if skipped_count > 0:
+        print(f"⏭️  Skipped (already exist): {skipped_count}")
+    if error_count > 0:
+        print(f"❌ Errors: {error_count}")
+    print(f"📁 Files saved in: {output_dir}")
+
+    notify_done(success_count, error_count)
+
+
 def notify_done(success_count, error_count):
     """Send a desktop notification and play a sound when done."""
     message = f"Successfully converted: {success_count}\nErrors: {error_count}"
@@ -379,6 +591,13 @@ def main():
 
     if args.show_settings:
         show_settings(input_dir)
+        return
+
+    if args.crf_test:
+        if args.end:
+            print(f"Error: --end can't be used with --crf-test, which always encodes {CRF_TEST_DURATION}s")
+            sys.exit(1)
+        run_crf_test(input_dir, args)
         return
 
     # Validate directory
