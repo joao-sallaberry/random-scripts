@@ -29,6 +29,8 @@ VOZ = "pt-BR-AntonioNeural"
 VOZ_PIPER = "pt_BR-faber-medium"
 PIPER_VOZES = Path.home() / ".local/share/piper-voices"
 TENTATIVAS = 3
+# o edge-tts às vezes fica com a conexão pendurada para sempre; após isso, mata e tenta de novo
+TIMEOUT_EDGE = 180
 PARALELO = 4
 # seções que ficam só no .md (tabelas); o disclaimer entra só com --com-disclaimer
 SEM_AUDIO = ("Carteira Recomendada", "Retornos Nominais")
@@ -95,8 +97,11 @@ def nome_arquivo(n, titulo):
     return f"{n:02d} - {t[:80]}.mp3"
 
 
-def rodar(cmd):
-    r = subprocess.run(cmd, capture_output=True, text=True)
+def rodar(cmd, timeout=None):
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        raise Erro(f"{Path(cmd[0]).name} não respondeu em {timeout} s")
     if r.returncode != 0:
         raise Erro(f"{Path(cmd[0]).name} falhou: {r.stderr.strip()[-500:]}")
     return r.stdout
@@ -127,7 +132,8 @@ def tts(texto, destino, motor, voz, velocidade, tmp):
     ultimo = None
     for _ in range(TENTATIVAS):
         try:
-            rodar(comando_tts(motor, voz, velocidade, entrada, destino))
+            rodar(comando_tts(motor, voz, velocidade, entrada, destino),
+                  timeout=TIMEOUT_EDGE if motor == "edge" else None)
             return
         except Erro as e:
             ultimo = e
