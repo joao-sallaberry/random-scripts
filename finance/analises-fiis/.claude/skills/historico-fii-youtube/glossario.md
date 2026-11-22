@@ -49,6 +49,65 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "MFI" (fundo a evitar, junto com o TGAR11) → MFII11 (confirmado)
 - "TGAR" → TGAR11 (confirmado)
 - "HIV", "RIV" (FoF multiestratégia) → RINV11 (confirmado)
+- "BTL G1", "BTL g11", "Betel G11", "BT LG", "BTGL", "BTAL G", "BTRG", "VTL g11", "PTLG", "ETLG" → BTLG11
+- "testes l11", "test x l11", "TCL11", "TRZL11", "trxl11" → TRXL11, antigo ticker do BTLG11 (gestão TRX até 2019)
+- "MG lg1", "MGLG", "mgl" (fundo de logística da Mogno) → MGLG11, hoje SNLG11
+- "BSAR 11", "SARI" → SARE11
+- "Vilg", "vlg" → VILG11
+- "Tigar" → TGAR11
+- "RSML11", "JML11" (fundo de shopping comparado ao PMLL11) → HSML11 (confirmado)
+- "VG" (fundo da Vinci, no contexto do HSLG11) → VILG11 (confirmado)
+- "fundo de lajes da REC" → RECT11 (confirmado)
+- "Enel Logística", "NL Logística", "N Logística", "Nelo 11", "ne logistic", "neolog logistic" (FII 100% do XPLG11) → NE Logistic FII (confirmado)
+- "o gol de fundo de investimento imobiliário" (comprador do galpão de Cabo de Santo Agostinho do XPLG11) → GOLGI FII (confirmado)
+- "XPIN 11", "XP Exter", "XPS" (origem dos imóveis industriais do XPLG11) → XP Exeter (confirmado)
+- "Tisser 11", "tecero 11", "Tishman Spire Renda Corporativa" (veículo do imóvel da DuPont, ALZR11) → TSER11 (confirmado)
+- "TJ kb1", "tjk b11" (fundo de saúde da gestora do FATN11) → TJKB11 (confirmado)
+- "bmi i11" (fundo do Brasílio Machado) → BMII11 (confirmado)
+- "breve 11" (fundo incorporado pelo FATN11) → BREV11 (confirmado)
+- "TSF" (no contexto do FATN11) → TRXF11 (confirmado)
+- "RBRR", "RB RL" → RBRL11
+- "EZ TB11", "STB11", "EZB", "EZTCWRB" (FII da Torre B do EZ Towers, carteira do IRIM11) → EZTB11 (confirmado)
+- "SHDOF", "HDOF", "HGDOFF" (FII zerado pelo IRIM11) → HDOF11 (confirmado)
+- "IRDM11", "Iridium 11" (a partir de dez/2025, depois da incorporação) → em geral, o IRIM11
+- "FTRR" (fundo novo da Fator, incorporador do OUJP11) → FTRR11 (confirmado)
+- "ORDI11", "Ouri11" (fundo da Ourinvest incorporado pelo VRTM11) → OURE11 (confirmado)
+- "PORD 11", "por 11", "fundo Apolo" → PORD11 (Polo Capital)
+- "Canip 11" → KNIP11
+- "gar 11", "fundo da guardia" → GARE11
+- "H I R E 11", "RIR11", "Hairi 11", "Hire" (veículo do TRXF11 que comprou o Passarelli do TEPP11) → HIRE11 (confirmado)
+- "TETF11", "TSF11", "TESP11" (comprador do Passarelli) → TRXF11
+- "TEP11", "TEAP11", "TEPY11", "TEPL11", "TEPN11", "TEPF11" → TEPP11
+- "a VBI através do seu Red Fund" (26,19% das cotas do TEPP11) → hedge fund da VBI (confirmado)
+- "que de Pro 11", "dpr 11", "DEPRO11" (fundo monoativo da Devant, ancorado pelo KISU11) → DPRO11 (confirmado)
+- "TG 11", "tg1" (fundo recente da TG Core, carteira do KISU11) → TGRE11 (confirmado)
+- "nc1" (fundo de papel da Navi, sem liquidez) → NCRI11 (confirmado)
+- "knhy11" → KNHY11; "lvb 11" → LVBI11 (fundos de que o FIIcaEsperto gosta na carteira do KISU11) (confirmado)
+- "cai ny11", "ky11", "k y11", "KY11", "NY11" (FII de papel da Kinea na carteira do KFOF11) → KNHY11 (confirmado)
+- "a11", "a is11", "a i1", "s11" (fundo de lajes com dois imóveis e contratos atípicos até 2025, na região da Chucri Zaidan) → AIEC11 (confirmado)
+- "fundo Suíça" (renda urbana vendido pelo KFOF11, FIIcaEsperto) → HGRU11 (confirmado); "o da TRX" no mesmo trecho → TRXF11 (confirmado)
+- "Riseu Visa", "Risa Viseu" (fundo de incorporação MCMV da Riza com a Direcional, na carteira do KFOF11) → Riza Viseu (confirmado)
+- "kng y11", "Kind Y11", "K G H11" (fundo IPCA da Kinea na carteira do ITRI11) → KNHY11 (confirmado)
+- "a NHF" (hedge fund no top 3 do Eric Leonardo, com o VGHF11) → KNHF11 (confirmado)
+- "Fundo de L da Telos" (fundo de lajes da Tellus vendido pelo ITRI11 no 4T24) → TEPP11 (confirmado)
+- "vegri 11", "Vegre 11", "VEGRI 11" (fundo de lajes da Valora, ancorado pelo ITRI11) → VGRI11 (confirmado)
+- "PSCE", "PSEC" (hedge fund da Pátria) → PSEC11 (confirmado)
+- "BRCR11" (FIIcaEsperto, 07/07/2026, carteira do ITRI11) → BRCO11 (Bresco) (confirmado)
+- "quatro mago PFF", "4M GOFF PFF", "FIMAG", "FUMAG", "MAGO PFF", "Mago PPF", "Mogno PFF", "FI MAGO PPF", "CR4 Mago PPF" (FII que recebeu o CRI da Porto 5 do ITRI11/ICRI11) → FII MAGOPFF (confirmado)
+- "BMLC", "Brascam Lajes Corporativas" (fundo da gestora "Argúcia", vendedor de imóvel ao HGRE11 com cotas) → BMLC11 (Brascan Lajes Corporativas, gestora Argucia Capital) (confirmado)
+- "brc" (Liberdade é Logo Ali, 03/03/2025, "rolo" envolvendo o Cenesp do HGRE11) → BRCR11 (confirmado)
+- "Tordesilhas F11", "HGTX11", "HCTR11", "Pátria Logística 11", "TSSF11", "TETF11", "TEVF11", "TRF11", "TGSF11", "TZEF11", "TESH11", "TSAF11", "TXF" (lapsos do FIIcaEsperto e do Liberdade é Logo Ali ao falar do TRXF11) → TRXF11
+- "TR XB", "TRX B", "txb", "TRXB" (veículo controlado pelo TRXF11, com lojas do GPA e do Assaí) → TRXB11
+- "TRxy", "TRXY" (fundo da própria TRX ancorado pelo TRXF11 com CRIs) → TRXY11 (confirmado)
+- "hbcr 11", "HC R" (vendedor das lojas Decathlon ao TRXF11, que tinha 18,8% das cotas) → HBCR11 (confirmado)
+- "evbi", "EVBI" (renda urbana da VBI, depois com a Capitânia) → EVBI11, hoje CPUR11
+- "VI 11", "Viur" (vendedor de imóveis educacionais ao TRXF11) → VIUR11
+- "BCFF11", "BSR11", "BC Fund", "FIMV9" (vendedor do prédio MV9, no centro do Rio, ao TRXF11) → BRCR11 (BC Fund), por meio do FII MV9
+- "HOF11", "HOF C" (ex-RBCO11, da Hedge; Morumbi 8.200 vendido ao TRXF11) → HOFC11
+- "HA11", "H A11" (fundo da Hedge, dono do Terra Corporate) → HAAA11
+- "BL SE 11", "BLCA" (Pátio Malzoni) e "CV FL11" (Vista Faria Lima), da gestora "Catuai"/"Cato Aí" → BLCA11 e CVFL11, da Catuaí
+- "Cirela Capital", "Cires 11" (vendedora de portfólio de R$ 2 bi ao TRXF11) → Cyrela Capital
+- "IPCA mais 20%" (FIIcaEsperto, 07/09/2026, dívida da compra do Terra Corporate) → IPCA + 9,20% (conferido no Liberdade é Logo Ali)
 
 ## Shoppings
 - "shopping encerrado" → Shopping Cerrado (Goiânia; conferido entre os dois canais)
@@ -63,6 +122,11 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "shops fia Lima", "Far Lima shops", "FL shops", "Shop Realismo" → Shops Faria Lima / FL Shops (JHSF)
 - "Sobradão Plaza" → São Bernardo Plaza Shopping (Allos)
 - "Beraba Shopping" (quando fala do portfólio do XPML11) → Uberlândia Shopping
+- "Shopping Amoreira" (PMLL11) → Madureira Shopping (confirmado)
+- "Rio Sul Sul Sul Shopping", "Pátio Paulista" (shoppings do RBR Malls) → Plaza Sul Shopping (confirmado)
+- "Rio 2 Shopping" (PMLL11) → Rio 2 Shopping, grafia correta (confirmado)
+- "pen", "Penha" (HGBS11) → Shopping Penha (confirmado)
+- "S Malls", "S malls" (administradora de shoppings do HGBS11) → Soul Malls (confirmado)
 
 ## Lugares e imóveis
 - "Duca de Caxias", "Lucas de Caxias", "duc Duque de Caxias" → Duque de Caxias (imóvel vendido pelo TRBL11)
@@ -79,6 +143,24 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "Torre elbon", "ebon", "ebone", "alboni" → Torre Ebony (Rochaverá)
 - "Torre Marble" → Torre Marble (Rochaverá)
 - "fundo Triple Way", "triplo A", "Triplea" → fundo Triple A (veículo com os imóveis do BLMG11, comprado pelo GGRC11)
+- "Pojuca, lá em Pernambuco" (imóvel do BTLG11) → Ipojuca (PE), complexo de Suape (confirmado)
+- "Caria Sica", "Encare Sig" (compra do HGLG11 no ES) → Cariacica
+- "Tectal", "Tektal", "Tectown", "Tektown" (imóvel do HGLG11) → Tech Town (confirmado)
+- "Canuã Log", "Porto Canô" (imóvel no ES vendido pelo VILG11 ao HGLG11) → Porto Canoa Log (confirmado)
+- "CD Privalo", "Privale" (imóvel vendido pelo VILG11 ao HGLG11) → CD Privalia (confirmado)
+- "RBL Log", "BR Log" (imóvel perto de Cajamar, RBRL11/XPLG11) → RBR Log (confirmado)
+- "Syslog", "Skylog", "sislog Galão", "XLOG" (galpão do XPLG11 em Duque de Caxias) → Syslog Galeão (confirmado)
+- "Sky" (imóvel do ALZR11 em Santana de Parnaíba) → SKY Brasil (confirmado)
+- "FISB 11" (imóvel do TEPP11) → Edifício Brigadeiro Faria Lima (confirmado)
+- "Passareli", "Passarele", "Pasquale" → Edifício Passarelli (TEPP11)
+- "Pão de Açúcar" (FIIcaEsperto, 15/07/2026, intenção de venda do TEPP11) → lapso por Passarelli (confirmado)
+- "Fugit", "Fugitso" → Edifício Fujitsu; "Torreul", "Toi Sul" → Torre Sul (TEPP11)
+- "Ortolândia" → Hortolândia; "Loveira" → Louveira; "Buu", "Uembu" → Embu; "Cabriuva" → Cabreúva (ativos do BTLG11)
+- "Cesp", "CESP", "CNESP", "NSPE" (imóvel de baixo padrão do HGRE11) → Centro Empresarial Cenesp (confirmado)
+- "Auracáia" (galpão do Mercado Livre comprado pelo TRXF11 do CPLG11) → Araucária (PR)
+- "Le Simaio", "Leste mile", "Leste Maio" → last mile
+- "Sans Clube", "Sams Club" → Sam's Club (Carrefour)
+- "Alegra", "rua Alegria" (imóvel do HGRE11 na Rua Visconde de Parnaíba; venda de 2024 desfeita em jul/2026 e revendido em out/2026) → Ed. Alegria (confirmado)
 
 ## Gestoras
 - "Telos", "Telus", "Tesla Rio Bravo", "Telos Rio Bravo" → Tellus (cogestora do TRBL11 com a Rio Bravo); "rolo bravo" é apelido do autor para a Rio Bravo
@@ -94,6 +176,13 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "Bruno Margato", "Augusto Martins" (gestores originais do HGRU11/CSHG): grafias corretas (confirmado)
 - "Rodrigo Abude" (sucessor no tijolo da Pátria) → Rodrigo Abbud (confirmado)
 - "op Pátria", "Patera", "pátria" → Pátria Investimentos (comprou a CSHG em 2024)
+- "Red" (gestora; "fundo da Red", "FOF da Red", "HA11") → Hedge Investments (HFOF11, HAAA11, HOFC11) (confirmado)
+- "grupo IMA" (5 imóveis educacionais comprados pelo TRXF11) → Ânima (confirmado)
+- "D Shopping" (administradora dos shoppings Via do TRXF11) → AD Shopping
+- "Barsi", "Bárcio", "Barce", "Bass", "Márcio" ("conto do vigário" dos gestores de FII) → Luiz Barsi
+- "Mirai" (corretora na ponta vendedora do TRXF11, FIIcaEsperto) → Mirae Asset
+- "no Invest" (corretora de pessoa física) → Nu Invest
+- "shortwatch" (site de posições vendidas) → ShortWatch
 
 ## Renda urbana (HGRU11)
 - "HG ru", "HGU", "HGRI", "HG Rio", "hg1", "HGR1", "G Gru" → HGRU11
@@ -124,6 +213,22 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "tdmo", "Todimo" → Todimo (CD em Cuiabá)
 - "Sensus Logística", "Cencosud Logística" → Cencosud
 - "Martin Braer", "Martin Bower" → Martin Brower
+- "Jaméfia", "Jamfia" → Jamef (confirmado)
+- "Seva Logistics" → CEVA Logistics
+- "obra Max" → Obramax; "ancheta peças" → Anchieta Peças
+- "W rook", "West rook", "West trck" → WestRock
+- "mble" (Extrema, BTLG11) → Mobly
+- "Bfly", "BFly" (empresa de viagens no Paulista Star, HGRE11) → BeFly (confirmado)
+
+## Devedores de CRI
+- "Elion serco", "rco" (CRI inadimplente do IRIM11) → CRI Ekko (confirmado)
+- "VCA" (maior CRI do SAPI11) → VCA, grafia correta (confirmado)
+- "Kima Incorporadora" (calote no ICRI11) → Porto 5, a própria incorporadora (confirmado)
+- "Carvalho rosken", "caval rosk", "cavalo rosque" → Carvalho Hosken
+- "exito" (CRI do ICRI11 em Perdizes, Morumbi e Moema) → Exto
+- "Econ" (CRI do ITRI11 com mais de 95% vendido) → Econ, grafia correta (confirmado)
+- "EDiAF" (incorporadora, CRI do ITRI11) → Idea Zarvos (confirmado)
+- "lotisa", "CR lotisa" (CRI do ITRI11 a CDI + 2,5%) → Lotisa (confirmado)
 
 ## Empresas (ações)
 - "Kint komma Brás" → Petrobras quando fala de receita em dólar; Intelbras quando fala de sistemas de segurança (confirmado)
@@ -140,3 +245,8 @@ Como a legenda automática escreve → forma correta. Entradas marcadas com (con
 - "capwight" → cap rate
 - "turn" (modelo) → turn key
 - "Celesf", "CL feito", "clube FI", "Clube FIIA" → Clube FII (site), salvo contexto claro em contrário
+- "Cellers Finance", "Celes finance", "sals finance", "ses finance", "Sellers finance" → seller financing (compra parcelada pelo vendedor)
+- "Saback", "semb" (contrato) → sale and leaseback
+- "keigar" → CAGR
+- "Ges", "Gas", "gás", "GNES", "Gades" (faixa de rendimento) → guidance
+- "valuation 57 superior" (FIIcaEsperto, 10/11/2026, venda do Cidade Jardim pelo XPML11) → valuation 57% superior ao da aquisição (confirmado)
