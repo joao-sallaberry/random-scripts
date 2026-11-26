@@ -2,7 +2,7 @@
 
 """
 
-Compress videos in a directory using ffmpeg with H.265 (10-bit) encoding.
+Compress a video, or all videos in a directory, using ffmpeg with H.265 (10-bit) encoding.
 Keeps original resolution and frame rate, deinterlaces when needed, and applies
 customizable CRF quality. Preserves metadata (dates, GPS, camera make/model) and
 file modification time while reducing file size. The equivalent ffmpeg command is
@@ -20,8 +20,7 @@ usage: compress_video.py [-h] [--crf CRF] [--preset PRESET] [--start START] [--e
 Compress videos in a directory using ffmpeg
 
 positional arguments:
-  path             Directory containing the videos (or a single video with --show-settings
-                   or --crf-test)
+  path             Video file, or directory containing the videos
 
 options:
   -h, --help       show this help message and exit
@@ -36,6 +35,7 @@ options:
 
 examples:
   compress_video.py --crf 20 --preset slow /path/to/videos
+  compress_video.py --crf 20 /path/to/videos/IMG_1234.MOV
   compress_video.py --show-settings /path/to/videos/ff20-slow
   compress_video.py --crf-test --start 01:30 /path/to/videos/IMG_1234.MOV
 """
@@ -131,7 +131,7 @@ def setup_argument_parser():
     parser.add_argument(
         'path',
         type=str,
-        help='Directory containing the videos (or a single video with --show-settings or --crf-test)'
+        help='Video file, or directory containing the videos'
     )
 
     return parser
@@ -348,15 +348,25 @@ def read_command_metadata(video_file):
     return result.stdout.strip() or None
 
 
-def show_settings(path):
+def find_videos(path):
     """
-    Print the recorded compress settings of a video, or of every video in a directory.
+    Get the videos to process: every video in a directory, or a single video file.
+
+    Returns:
+        tuple: (sorted list of video paths, directory the output directory goes in)
     """
     if path.is_dir():
         video_files = sorted(f for f in path.iterdir()
                              if f.is_file() and f.suffix.lower() in VIDEO_EXTENSIONS)
-    else:
-        video_files = [path]
+        return video_files, path
+    return [path], path.parent
+
+
+def show_settings(path):
+    """
+    Print the recorded compress settings of a video, or of every video in a directory.
+    """
+    video_files, _ = find_videos(path)
 
     if not video_files:
         print("No video files found in the directory")
@@ -499,13 +509,8 @@ def run_crf_test(path, args):
     """
     Run crf_test on a single video, or on every video in a directory.
     """
-    if path.is_dir():
-        video_files = sorted(f for f in path.iterdir()
-                             if f.is_file() and f.suffix.lower() in VIDEO_EXTENSIONS)
-        output_dir = path / f"crf-test-{args.preset}"
-    else:
-        video_files = [path]
-        output_dir = path.parent / f"crf-test-{args.preset}"
+    video_files, base_dir = find_videos(path)
+    output_dir = base_dir / f"crf-test-{args.preset}"
 
     if not video_files:
         print("No video files found in the directory")
@@ -600,17 +605,19 @@ def main():
         run_crf_test(input_dir, args)
         return
 
-    # Validate directory
-    if not input_dir.is_dir():
-        print(f"Error: Not a directory: {input_dir}")
-        sys.exit(1)
-
     if not shutil.which("exiftool"):
         print("Warning: exiftool not found, GPS and camera metadata may be lost")
         print()
 
+    # Find the videos: every video in a directory, or a single file
+    video_files, base_dir = find_videos(input_dir)
+
+    if not video_files:
+        print("No video files found in the directory")
+        sys.exit(0)
+
     # Create output directory with dynamic name
-    output_dir = input_dir / f"ff{args.crf}-{args.preset}"
+    output_dir = base_dir / f"ff{args.crf}-{args.preset}"
     output_dir.mkdir(exist_ok=True)
 
     print(f"Converting videos from: {input_dir}")
@@ -622,14 +629,6 @@ def main():
         print(f"End time: {args.end}")
     print(f"Output to: {output_dir}")
     print()
-
-    # Find all video files
-    video_files = sorted(f for f in input_dir.iterdir()
-                         if f.is_file() and f.suffix.lower() in VIDEO_EXTENSIONS)
-
-    if not video_files:
-        print("No video files found in the directory")
-        sys.exit(0)
 
     print(f"Found {len(video_files)} video file(s)")
     print()
