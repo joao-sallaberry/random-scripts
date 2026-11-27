@@ -2,7 +2,7 @@
 
 Personal Python CLI scripts, grouped by domain:
 
-- `multimedia/` — batch operations over photos/videos: compress, compare, fix shot dates, set GPS, extract RAW previews, isolate files without EXIF dates.
+- `multimedia/` — batch operations over photos/videos: compress, compare, fix shot dates, set GPS, extract RAW previews, isolate files without EXIF dates. `termux_share_date.py` sets the date of a video shared to Termux on Android (setup in its docstring).
 - `finance/` — B3 transaction export to CSV (`transactions_from_b3.py`).
   - `analises-fiis/` — REIT analyses: the DesmistificandoFII report archiver/audio (`desmistificando-fii/`) and Claude skills in `.claude/skills/`.
 
