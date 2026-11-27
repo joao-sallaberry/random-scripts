@@ -14,7 +14,13 @@ Requires the Termux:API app and, inside Termux:
 
 Setup (in Termux, after cloning the repository to ~/random-scripts):
     mkdir -p ~/bin
-    ln -sf ~/random-scripts/multimedia/termux_share_date.py ~/bin/termux-file-editor
+    rm -f ~/bin/termux-file-editor
+    printf '#!/data/data/com.termux/files/usr/bin/sh\nexec python3 "$HOME/random-scripts/multimedia/termux_share_date.py" "$@"\n' > ~/bin/termux-file-editor
+    chmod +x ~/bin/termux-file-editor
+
+    A wrapper rather than a symlink to this file: when Termux runs termux-file-editor
+    from the share menu, it doesn't resolve this file's "#!/usr/bin/env python3" shebang
+    (fails with "env: ...: No such file or directory").
 
 Usage:
     Share a video or photo from any app → Termux → pick the date and time.
