@@ -11,6 +11,7 @@ the updated file (termux-share), so it can be sent on to Google Photos.
 
 Requires the Termux:API app and, inside Termux:
     pkg install python ffmpeg exiftool termux-api
+    pip install tzdata   # Termux has no system timezone database for zoneinfo
 
 Setup (in Termux, after cloning the repository to ~/random-scripts):
     mkdir -p ~/bin
