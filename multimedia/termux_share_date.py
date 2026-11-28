@@ -6,22 +6,29 @@ Android share target (via Termux) that sets the shot date of a shared video or p
 When a file is shared to Termux, Termux copies it to ~/downloads and runs
 ~/bin/termux-file-editor with its path. This script is meant to be that program:
 it opens Android's date and time pickers (termux-dialog), sets the date with
-change_shot_date.py (in the phone's timezone), and reopens the share menu with
-the updated file (termux-share), so it can be sent on to Google Photos.
+change_shot_date.py (in the phone's timezone), moves the updated file to the
+phone's public Download folder, and reopens the share menu with it (termux-share),
+so it can be sent on to Google Photos. The file must be shared from the public
+folder: other apps can't read Termux's private ~/downloads ("Erro ao carregar mídia").
 
 Requires the Termux:API app and, inside Termux:
     pkg install python ffmpeg exiftool termux-api
     pip install tzdata   # Termux has no system timezone database for zoneinfo
+    termux-setup-storage # creates ~/storage/downloads (the public Download folder)
 
 Setup (in Termux, after cloning the repository to ~/random-scripts):
     mkdir -p ~/bin
     rm -f ~/bin/termux-file-editor
-    printf '#!/data/data/com.termux/files/usr/bin/sh\nexec python3 "$HOME/random-scripts/multimedia/termux_share_date.py" "$@"\n' > ~/bin/termux-file-editor
+    cat > ~/bin/termux-file-editor <<'EOF'
+    #!/data/data/com.termux/files/usr/bin/sh
+    exec python3 "$HOME/random-scripts/multimedia/termux_share_date.py" "$@"
+    EOF
     chmod +x ~/bin/termux-file-editor
 
     A wrapper rather than a symlink to this file: when Termux runs termux-file-editor
     from the share menu, it doesn't resolve this file's "#!/usr/bin/env python3" shebang
-    (fails with "env: ...: No such file or directory").
+    (fails with "env: ...: No such file or directory"). Remove any old symlink first,
+    or the cat writes through it and overwrites this file.
 
 Usage:
     Share a video or photo from any app → Termux → pick the date and time.
@@ -30,13 +37,19 @@ Usage:
 """
 
 import json
+import mimetypes
+import os
 import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 CHANGE_SHOT_DATE = Path(__file__).resolve().parent / "change_shot_date.py"
+# Created by termux-setup-storage; points to the phone's public Download folder
+PUBLIC_DIR = Path.home() / "storage" / "downloads"
 
 
 def fail(message):
@@ -90,6 +103,8 @@ def main():
 
     if shutil.which("termux-dialog") is None:
         fail("termux-dialog not found. Run: pkg install termux-api")
+    if not PUBLIC_DIR.is_dir():
+        fail(f"{PUBLIC_DIR} not found. Run: termux-setup-storage")
 
     print(f"🎬 {input_file.name}")
 
@@ -117,11 +132,21 @@ def main():
     if result.returncode != 0 or not output_file.is_file():
         fail("change_shot_date.py failed")
 
-    print(f"📤 Sharing {output_file.name} ({new_date}, {timezone})")
-    subprocess.run(["termux-share", "-a", "send", str(output_file)], check=True)
+    # File date too, so file managers show the chosen date
+    timestamp = datetime.fromisoformat(new_date).replace(tzinfo=ZoneInfo(timezone)).timestamp()
+    os.utime(output_file, (timestamp, timestamp))
 
-    # The share copy in ~/downloads is no longer needed. The updated file is kept:
-    # the app it's shared to may still be reading it.
+    # Other apps can't read Termux's private folders: share from the public Download folder
+    public_file = PUBLIC_DIR / output_file.name
+    shutil.move(output_file, public_file)
+    subprocess.run(["termux-media-scan", str(public_file)], capture_output=True)
+
+    content_type = mimetypes.guess_type(public_file.name)[0] or "*/*"
+    print(f"📤 Sharing {public_file} ({new_date}, {timezone})")
+    subprocess.run(["termux-share", "-a", "send", "-c", content_type, str(public_file)], check=True)
+
+    # The share copy in ~/downloads is no longer needed. The updated file is kept in
+    # the public folder: the app it's shared to may still be reading it.
     input_file.unlink()
 
 
